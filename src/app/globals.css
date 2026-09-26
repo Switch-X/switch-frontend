@@ -1,0 +1,379 @@
+@import "tailwindcss";
+
+/**
+ * The palette, as tokens.
+ *
+ * Tailwind v4 reads this block and generates the utilities, so `--color-brand` below is what
+ * makes `bg-brand` and `text-brand` exist. Components name the role - surface, ink, border -
+ * rather than the colour, which is what lets the whole app be re-skinned from these twenty lines.
+ *
+ * The theme commits to light. `color-scheme` is set to match, so native controls - date pickers,
+ * select dropdowns, scrollbars - are drawn light too instead of the browser guessing dark from
+ * the OS and rendering black text fields on a white page.
+ */
+@theme {
+  /* Paper, not screen-grey. The warmth is the whole point: a cold #f5f6fa canvas is the
+     single strongest "this is a bootstrap template" signal a page can send, and no amount of
+     brand colour on top of it undoes that. */
+  --color-canvas: #f7f4ef;
+  --color-surface: #ffffff;
+  --color-surface-muted: #fbf9f5;
+  --color-surface-sunken: #f0ebe2;
+
+  --color-border: #e7e0d5;
+  --color-border-strong: #d5cbbc;
+
+  /* Ink carries the same warmth, so black text on paper never reads blue. */
+  --color-ink: #191513;
+  --color-ink-muted: #5e564b;
+  --color-ink-subtle: #756c5f;
+
+  /* The one saturated hue in the system. Violet is the only family the status colours below
+     do not already spoken for, which is why it stays violet - but electric rather than the
+     washed mid-purple it was. */
+  --color-brand: #5b2fe8;
+  --color-brand-strong: #4a22c9;
+  --color-brand-soft: #eee9fe;
+  --color-brand-ring: #c3adfa;
+  --color-accent: #c026d3;
+  --color-accent-soft: #fae8fd;
+
+  /* Status colours, warmed a touch so they sit on paper rather than float above it. */
+  --color-good: #0b7a50;
+  --color-good-soft: #def3e8;
+  --color-warn: #9c5500;
+  --color-warn-soft: #fbebd2;
+  --color-bad: #c22749;
+  --color-bad-soft: #fce7eb;
+  --color-info: #1d6aa6;
+  --color-info-soft: #e5eff8;
+
+  /* The hero band. Deep plum-black rather than neutral black, so the violet sitting on it
+     reads as the same family instead of an accent stuck onto grey. */
+  --color-night: #16121f;
+  --color-night-soft: #221b33;
+  --color-night-line: #322949;
+
+  /* `next/font` defines the --font-*-loaded variables on <html>, including a metric-matched
+     local fallback, so these stacks end at a generic family rather than naming one. */
+  --font-sans: var(--font-sans-loaded), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-display-loaded), var(--font-sans-loaded), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-card: 14px;
+
+  --animate-rise: rise 0.18s ease-out;
+  --animate-fade: fade 0.15s ease-out;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.99);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  /* Anchors and the sidebar's in-page jumps should glide rather than teleport. */
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/**
+ * Headings take the display face automatically.
+ *
+ * Set here rather than as a utility on every heading, so a heading added later is not quietly
+ * the wrong font. Tighter tracking because Bricolage is wide by default and reads loose at
+ * display sizes without it.
+ */
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.022em;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+}
+
+/* Numbers that sit in columns or count upward should not jitter as digits change width. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/**
+ * One visible focus ring for everything reachable by keyboard.
+ *
+ * Browsers only paint `:focus-visible` for keyboard and assistive navigation, so this does not
+ * put a ring around every button a mouse touches - which is the usual reason people delete the
+ * outline altogether and leave keyboard users with nothing.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* The page scrolls a lot in this app; a thin bar is less of an interruption than the default. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-ink-subtle);
+}
+
+/* Native date and time inputs hide their picker button until hover, which reads as broken. */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* ========================================================== landing page ==
+ *
+ * Motion for the marketing page only. The app itself stays still on purpose - an interface you
+ * use every day should not be animating at you - but the page that has to earn a first look is
+ * allowed to move.
+ *
+ * Everything here is transform and opacity, both of which the compositor can handle without
+ * laying the page out again. Animating width, top or background-position on scroll is what makes
+ * a landing page feel worse the further down you get.
+ */
+
+/* Slow-drifting colour behind the hero. Two blobs on different periods, so the pattern never
+   visibly repeats and the eye cannot find the loop. */
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(6%, -4%, 0) scale(1.12);
+  }
+  66% {
+    transform: translate3d(-5%, 5%, 0) scale(0.94);
+  }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* A light sweep across a surface - used on the preview window to suggest a live screen. */
+@keyframes sheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+
+@keyframes gradient-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes ping-soft {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes marquee-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* The track holds two identical copies, so travelling exactly half of it loops seamlessly. */
+    transform: translateX(-50%);
+  }
+}
+
+.aurora-blob {
+  animation: aurora-drift 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+.float-soft {
+  animation: float-soft 7s ease-in-out infinite;
+}
+
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: sheen 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Headline text painted with a moving gradient rather than a flat colour. */
+.text-gradient {
+  /* Tuned for the dark hero band, which is the only place this is used. The stops are the
+     light end of the brand ramp rather than the mid tones - a #5b2fe8 violet that reads as
+     vivid on paper goes muddy against #16121f. */
+  background: linear-gradient(
+    100deg,
+    #c9b6ff 0%,
+    #f0a6ff 32%,
+    #a78bfa 58%,
+    #c9b6ff 100%
+  );
+  background-size: 220% 220%;
+  animation: gradient-pan 9s ease infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bar-grow {
+  transform-origin: left center;
+  animation: bar-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ping-soft {
+  animation: ping-soft 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.marquee-track {
+  animation: marquee-slide 36s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/**
+ * Scroll reveal.
+ *
+ * The hidden state is only applied once JavaScript has marked the document, so a page that fails
+ * to hydrate - or a crawler that never runs scripts - still shows all of its content rather than
+ * a column of invisible sections.
+ */
+[data-reveal-ready] .reveal {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+[data-reveal-ready] .reveal-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Cursor-following highlight on the feature cards. The component writes --mx/--my on hover. */
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    320px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--color-brand) 16%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Reveals must land in their finished state rather than staying stuck at opacity 0. */
+  [data-reveal-ready] .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
