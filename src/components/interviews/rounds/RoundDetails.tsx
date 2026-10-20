@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { InterviewRoundView } from "@/lib/types";
+import type { InterviewRoundView } from "@/components/interviews/interviews.types";
 
 /** What was asked, what was said, and why it did not go through - shown when a round is opened. */
 export function RoundDetails({ round }: { round: InterviewRoundView }) {

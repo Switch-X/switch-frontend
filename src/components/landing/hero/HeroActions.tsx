@@ -1,4 +1,4 @@
-import { buttonClass } from "@/components/ui/Button";
+import { buttonClass } from "@/components/ui/button/Button";
 import { Icon } from "@/components/ui/icons";
 import { AuthDialogTrigger } from "@/components/landing/auth/AuthDialogTrigger";
 

@@ -1,42 +1,46 @@
 "use client";
 
 /**
- * Create the profile to sign in with.
+ * Create an account, three steps at a time.
  *
- * <p>The timezone is picked up from the browser rather than defaulted. The backend falls back to
- * `switch.default-timezone` (UTC out of the box) for a profile that arrives without one, and its
- * own comments are blunt that this is a guess that is wrong for most of the world. The client
- * knows the real answer for free, so it sends it.
+ * <p>Nobody is asked for an account id. Creating the account is two calls - Keycloak makes the
+ * login and decides that id, then the profile is created under it - and `signUp` makes both in
+ * that order.
+ *
+ * <p>The whole form lives here and the steps only render slices of it, so moving between them
+ * keeps everything typed so far and the final submit sends one request rather than three.
  */
 
+import { authApi } from "@/components/landing/auth/auth.api";
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { ERROR_MESSAGES } from "@/lib/errorMessages";
-import { WORKING_PROFILE } from "@/lib/enums";
-import { useFormFields } from "@/lib/hooks";
+import { useFormFields } from "@/lib/hooks/useFormFields";
 import { useSession } from "@/lib/session";
 import { detectTimeZone } from "@/lib/timezone";
-import { Button } from "@/components/ui/Button";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { EnumSelect } from "@/components/ui/form/EnumSelect";
-import { Field } from "@/components/ui/form/Field";
-import { Input } from "@/components/ui/form/Input";
-import {
-  DEFAULT_TIMEZONE,
-  DEFAULT_WORKING_PROFILE,
-} from "@/components/shared/constants/profileDefaults";
-import { INITIAL_SIGN_UP_FORM } from "@/components/landing/constants/auth";
-import { suggestAccountId, toCreateProfileRequest } from "@/components/landing/utils/auth";
-import { ReminderFields } from "./ReminderFields";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { Icon } from "@/components/ui/icons";
+import { DEFAULT_TIMEZONE } from "@/components/shared/constants/profileDefaults";
+import { INITIAL_SIGN_UP_FORM } from "@/components/landing/auth/sign-up/signUp.constants";
+import { SIGN_UP_STEPS } from "@/components/landing/auth/sign-up/signUp.constants";
+import { splitName, toCreateProfileRequest } from "@/components/landing/auth/sign-up/signUp.utils";
+import { WizardProgress } from "./WizardProgress";
+import { AccountInfoStep } from "./steps/AccountInfoStep";
+import { ExperienceStep } from "./steps/ExperienceStep";
+import { RemindersStep } from "./steps/RemindersStep";
+
+const LAST = SIGN_UP_STEPS.length - 1;
 
 export function SignUpPanel() {
   const { signUp } = useSession();
   const router = useRouter();
 
   const [form, set] = useFormFields(INITIAL_SIGN_UP_FORM);
-  const [touchedAccountId, setTouchedAccountId] = useState(false);
+  const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -46,28 +50,80 @@ export function SignUpPanel() {
     set("timezone", detectTimeZone() ?? DEFAULT_TIMEZONE);
   }, [set]);
 
-  // Follows the username until the person edits it themselves, then stops interfering.
-  const accountId = touchedAccountId ? form.accountId : suggestAccountId(form.username);
+  /** Blocks **Next** on anything this step insists on, naming each gap under its own field. */
+  function missingOnThisStep(): Record<string, string> {
+    const gaps: Record<string, string> = {};
+    for (const field of SIGN_UP_STEPS[step].requires) {
+      if (!String(form[field]).trim()) gaps[field] = "This one is needed to carry on.";
+    }
+    return gaps;
+  }
+
+  /**
+   * False only when the backend says the address already has an account.
+   *
+   * <p>A check that could not be made is not a reason to stop. Registering refuses a taken
+   * address on its own, so an unreachable backend here costs a later error rather than a
+   * sign-up nobody can finish.
+   */
+  async function emailIsFree(): Promise<boolean> {
+    setChecking(true);
+    try {
+      const free = await authApi.isEmailAvailable({ email: form.email.trim() });
+      if (!free) setFieldErrors({ email: "This email already has an account. Sign in instead." });
+      return free;
+    } catch {
+      return true;
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  async function next() {
+    const gaps = missingOnThisStep();
+    setFieldErrors(gaps);
+    if (Object.keys(gaps).length > 0) return;
+    setError(null);
+
+    // Leaving the first step is where the email is known and nothing has been built on it yet.
+    // Checking here rather than at the end means nobody fills in two more screens to be told
+    // the address was taken all along.
+    if (step === 0 && !(await emailIsFree())) return;
+
+    setStep((current) => Math.min(current + 1, LAST));
+  }
+
+  function back() {
+    setError(null);
+    setFieldErrors({});
+    setStep((current) => Math.max(current - 1, 0));
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    setFieldErrors({});
-
-    const id = accountId.trim();
-    if (!id) {
-      setFieldErrors({ accountId: "Pick an account id - it is what you will sign in with." });
+    // Enter on an earlier step should advance, not create the account half-filled.
+    if (step < LAST) {
+      await next();
       return;
     }
 
+    setError(null);
+    setFieldErrors({});
     setBusy(true);
     try {
-      await signUp(id, toCreateProfileRequest(form));
+      const { firstName, lastName } = splitName(form.fullName);
+      await signUp(
+        { email: form.email.trim(), password: form.password, firstName, lastName },
+        toCreateProfileRequest(form),
+      );
       router.push("/dashboard");
     } catch (failure) {
       if (failure instanceof ApiError) {
         setFieldErrors(failure.fieldErrors);
         setError(failure.message);
+        // A rejected field almost always belongs to step one, which is the only step the
+        // backend validates strictly. Send them back to it rather than to a dead Create button.
+        if (Object.keys(failure.fieldErrors).length > 0) setStep(0);
       } else {
         setError(ERROR_MESSAGES.offline);
       }
@@ -76,122 +132,43 @@ export function SignUpPanel() {
   }
 
   return (
-    <form className="space-y-4" onSubmit={submit}>
-      <div>
-        <h2 className="text-lg font-semibold text-ink">Create your profile</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Everything here can be changed later from the profile page.
-        </p>
+    <form className="flex min-h-[26rem] flex-col" onSubmit={submit}>
+      <WizardProgress current={step} />
+
+      <div className="mt-7 flex-1">
+        {step === 0 && <AccountInfoStep form={form} set={set} fieldErrors={fieldErrors} />}
+        {step === 1 && <ExperienceStep form={form} set={set} fieldErrors={fieldErrors} />}
+        {step === 2 && <RemindersStep form={form} set={set} fieldErrors={fieldErrors} />}
       </div>
 
-      <Field label="Full name" htmlFor="signup-name" required error={fieldErrors.fullName}>
-        <Input
-          id="signup-name"
-          required
-          value={form.fullName}
-          placeholder="Ada Lovelace"
-          autoComplete="name"
-          onChange={(event) => set("fullName", event.target.value)}
-        />
-      </Field>
+      {error && (
+        <div className="mt-5">
+          <ErrorNote>{error}</ErrorNote>
+        </div>
+      )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Username" htmlFor="signup-username" error={fieldErrors.username}>
-          <Input
-            id="signup-username"
-            value={form.username}
-            placeholder="ada"
-            onChange={(event) => set("username", event.target.value)}
-          />
-        </Field>
+      <div className="mt-7 flex items-center justify-between gap-3 border-t border-border pt-5">
+        {step > 0 ? (
+          <Button type="button" variant="ghost" onClick={back}>
+            <Icon.ChevronLeft className="size-4" />
+            Back
+          </Button>
+        ) : (
+          <span />
+        )}
 
-        <Field
-          label="Account ID"
-          htmlFor="signup-account"
-          required
-          error={fieldErrors.accountId}
-          hint="You will use this to sign in, so pick something you will remember."
-        >
-          <Input
-            id="signup-account"
-            value={accountId}
-            placeholder="ada"
-            onChange={(event) => {
-              setTouchedAccountId(true);
-              set("accountId", event.target.value);
-            }}
-          />
-        </Field>
+        {step < LAST ? (
+          <Button type="button" onClick={() => void next()} className="px-6" loading={checking}>
+            Continue
+            <Icon.ArrowRight className="size-4" />
+          </Button>
+        ) : (
+          <Button type="submit" className="px-6" loading={busy}>
+            Create account
+            <Icon.Check className="size-4" />
+          </Button>
+        )}
       </div>
-
-      <Field label="Email" htmlFor="signup-email" required error={fieldErrors.email}>
-        <Input
-          id="signup-email"
-          type="email"
-          required
-          value={form.email}
-          placeholder="ada@example.com"
-          autoComplete="email"
-          onChange={(event) => set("email", event.target.value)}
-        />
-      </Field>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          label="Years of experience"
-          htmlFor="signup-years"
-          error={fieldErrors.yearsOfExperience}
-        >
-          <Input
-            id="signup-years"
-            type="number"
-            min={0}
-            max={60}
-            value={form.yearsOfExperience}
-            onChange={(event) => set("yearsOfExperience", event.target.value)}
-          />
-        </Field>
-
-        <Field label="Stage" htmlFor="signup-stage" error={fieldErrors.workingProfile}>
-          <EnumSelect
-            id="signup-stage"
-            table={WORKING_PROFILE}
-            value={form.workingProfile}
-            placeholder="Choose one"
-            onChange={(value) => set("workingProfile", value ?? DEFAULT_WORKING_PROFILE)}
-          />
-        </Field>
-      </div>
-
-      <Field label="Skills" htmlFor="signup-skills" hint="Comma separated — java, spring, postgresql">
-        <Input
-          id="signup-skills"
-          value={form.skills}
-          placeholder="java, spring, postgresql"
-          onChange={(event) => set("skills", event.target.value)}
-        />
-      </Field>
-
-      <Field
-        label="Roles you are targeting"
-        htmlFor="signup-roles"
-        hint="Comma separated — Backend Engineer, Platform Engineer"
-      >
-        <Input
-          id="signup-roles"
-          value={form.targetedRoles}
-          placeholder="Backend Engineer, Platform Engineer"
-          onChange={(event) => set("targetedRoles", event.target.value)}
-        />
-      </Field>
-
-      <ReminderFields form={form} set={set} fieldErrors={fieldErrors} />
-
-      {error && <ErrorNote>{error}</ErrorNote>}
-
-      <Button type="submit" className="w-full" loading={busy}>
-        Create account
-      </Button>
     </form>
   );
 }

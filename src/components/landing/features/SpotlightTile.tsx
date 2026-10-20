@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cx } from "@/lib/cx";
-import { useSpotlight } from "@/components/landing/hooks/useSpotlight";
+import { useSpotlight } from "@/components/landing/features/useSpotlight";
 
 /** A card that lights up under the cursor. Only the card is a client component, not what is in it. */
 export function SpotlightTile({ className, children }: { className?: string; children: ReactNode }) {

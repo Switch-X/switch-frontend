@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { SAMPLE_DATA_COUNTS } from "@/lib/sampleData";
-import { buttonClass } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { buttonClass } from "@/components/ui/button/Button";
+import { Card } from "@/components/ui/layout/Card";
 import { Icon } from "@/components/ui/icons";
-import { SampleDataButton } from "@/components/shared/sample-data/SampleDataButton";
 import { useDashboardData } from "@/components/dashboard/context/DashboardDataProvider";
-import { isAccountEmpty } from "@/components/dashboard/utils/summary";
+import { isAccountEmpty } from "@/components/dashboard/summary.utils";
 
 /** The fresh-start block, shown only while the whole account is empty. */
 export function GettingStarted() {
@@ -21,15 +19,13 @@ export function GettingStarted() {
       </span>
       <h2 className="text-lg font-semibold text-ink">Nothing tracked yet</h2>
       <p className="mx-auto mt-1.5 max-w-md text-sm text-ink-muted">
-        Add your first application, or load a worked example — {SAMPLE_DATA_COUNTS.applications}{" "}
-        applications covering every status, interviews with their rounds, assignments and
-        screening calls, all dated around today so the deadlines mean something.
+        Start with the application you most recently sent. Everything else hangs off it — the
+        screening call, the take-home, the interview rounds — and this page fills in from there.
       </p>
-      <div className="mt-5 flex flex-wrap justify-center gap-2">
-        <SampleDataButton onLoaded={account.reloadAll} />
-        <Link href="/applications" className={buttonClass({ variant: "secondary" })}>
+      <div className="mt-5 flex justify-center">
+        <Link href="/applications" className={buttonClass()}>
           <Icon.Plus className="size-4" />
-          Add one myself
+          Add your first application
         </Link>
       </div>
     </Card>

@@ -1,6 +1,7 @@
-import { formatCount, formatDate, relativeDay } from "@/lib/format";
-import type { InterviewView } from "@/lib/types";
+import { formatDate, relativeDay } from "@/lib/format";
+import type { InterviewView } from "@/components/interviews/interviews.types";
 import { Icon } from "@/components/ui/icons";
+import { interviewProgress, progressLabel } from "@/components/shared/utils/interviews";
 
 export function UpcomingInterviewItem({
   interview,
@@ -17,9 +18,7 @@ export function UpcomingInterviewItem({
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium text-ink">{company}</span>
         <span className="block truncate text-xs text-ink-subtle">
-          {interview.currentRound === 0
-            ? "No rounds yet"
-            : `${formatCount(interview.currentRound, "round")} so far`}
+          {progressLabel(interviewProgress(interview))}
         </span>
       </span>
       <span className="shrink-0 text-right">

@@ -5,22 +5,33 @@
  * for its rows, and which record is open in the editor or waiting on a delete confirmation.
  */
 
-import { createContext, useContext, type ReactNode } from "react";
-import { api } from "@/lib/api";
-import { useEditor, useResource, type Editor, type Resource } from "@/lib/hooks";
-import type { AssignmentView } from "@/lib/types";
-import { useCompanyNames } from "@/components/shared/hooks/useCompanyNames";
+import { assignmentsApi } from "@/components/assignments/assignments.api";
+import {
+  createContext,
+  useContext,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
+
+import { type Editor, useEditor } from "@/lib/hooks/useEditor";
+import { type Resource, useResource } from "@/lib/hooks/useResource";
+import type { AssignmentView } from "@/components/assignments/assignments.types";
 import {
   useDeleteConfirmation,
   type DeleteConfirmation,
 } from "@/components/shared/hooks/useDeleteConfirmation";
 import { useListFilters, type ListFilters } from "@/components/shared/hooks/useListFilters";
-import { INITIAL_FILTERS } from "@/components/assignments/constants/assignmentList";
-import type { AssignmentFilterState } from "@/components/assignments/types/assignmentList";
+import { usePageGuard } from "@/components/shared/hooks/usePageGuard";
+import { INITIAL_FILTERS } from "@/components/assignments/assignmentList.constants";
+import { PAGE_SIZE } from "@/components/shared/constants/paging";
+import type { PagedResult } from "@/lib/types";
+import type { AssignmentFilterState } from "@/components/assignments/assignmentList.types";
 
 type AssignmentsValue = ListFilters<AssignmentFilterState> & {
-  assignments: Resource<AssignmentView[]>;
-  companyOf: Map<number, string>;
+  setPage: Dispatch<SetStateAction<number>>;
+  assignments: Resource<PagedResult<AssignmentView>>;
   editor: Editor<AssignmentView>;
   deletion: DeleteConfirmation<AssignmentView>;
 };
@@ -28,24 +39,30 @@ type AssignmentsValue = ListFilters<AssignmentFilterState> & {
 const AssignmentsContext = createContext<AssignmentsValue | null>(null);
 
 export function AssignmentsProvider({ children }: { children: ReactNode }) {
-  const filters = useListFilters(INITIAL_FILTERS);
+  const [page, setPage] = useState(0);
+
+  // Any filter change invalidates the current page number: staying on page 4 while narrowing to
+  // a filter with six results shows an empty table and looks like a bug.
+  const filters = useListFilters(INITIAL_FILTERS, () => setPage(0));
 
   const assignments = useResource(
-    () => api.assignments.list(filters.filters),
-    Object.values(filters.filters),
+    () => assignmentsApi.list({ ...filters.filters, page, size: PAGE_SIZE }),
+    [...Object.values(filters.filters), page],
   );
 
-  const companyOf = useCompanyNames();
+  // Deleting the last row on the last page leaves this asking for a page that has gone.
+  usePageGuard(assignments.data, setPage);
+
   const editor = useEditor<AssignmentView>();
 
   const deletion = useDeleteConfirmation<AssignmentView>({
-    remove: (assignment) => api.assignments.remove(assignment.id),
+    remove: (assignment) => assignmentsApi.remove(assignment.id),
     deleted: "Assignment deleted",
     failed: "Could not delete that assignment",
     onDeleted: assignments.reload,
   });
 
-  const value: AssignmentsValue = { ...filters, assignments, companyOf, editor, deletion };
+  const value: AssignmentsValue = { ...filters, setPage, assignments, editor, deletion };
 
   return <AssignmentsContext.Provider value={value}>{children}</AssignmentsContext.Provider>;
 }

@@ -5,12 +5,12 @@
  *
  * <p>A tall form sitting beside the headline is the layout that makes a product page look like a
  * login screen with marketing copy attached, and it costs the first screen the space the product
- * shot needs. The one thing worth keeping in the open is the fast path - the demo chips in the
- * hero still sign you in with one click.
+ * shot needs. What stays in the open is the button that opens it: **Create account** in the
+ * hero, the header and the closing call to action.
  */
 
-import { Modal } from "@/components/ui/Modal";
-import { AUTH_DIALOG_COPY } from "@/components/landing/constants/auth";
+import { Modal } from "@/components/ui/overlay/Modal";
+import { AUTH_DIALOG_COPY } from "@/components/landing/auth/authDialog.constants";
 import { useAuthDialog } from "@/components/landing/context/AuthDialogProvider";
 import { AuthCard } from "./AuthCard";
 
@@ -24,7 +24,7 @@ export function AuthDialog() {
       onClose={close}
       title={copy.title}
       description={copy.description}
-      size="sm"
+      size={mode === "signup" ? "md" : "sm"}
     >
       <AuthCard initialTab={mode ?? "signin"} />
     </Modal>

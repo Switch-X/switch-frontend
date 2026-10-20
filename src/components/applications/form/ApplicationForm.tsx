@@ -8,22 +8,24 @@
  * one (see `NEW_APPLICATION_STATUS`). Building the body from the fields is `toApplicationPayload`.
  */
 
-import { useState, type FormEvent } from "react";
-import { ApiError, api } from "@/lib/api";
+import { applicationsApi } from "@/components/applications/applications.api";
 import { APPLICATION_STATUS, REFERRAL, SOURCE } from "@/lib/enums";
-import { useFormFields } from "@/lib/hooks";
-import type { ApplicationView } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { Modal } from "@/components/ui/Modal";
+import { useFormFields } from "@/lib/hooks/useFormFields";
+import { changedFields } from "@/lib/patch";
+import type { ApplicationView } from "@/components/applications/applications.types";
+import { savedMessage } from "@/components/shared/utils/interviewNudge";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { Modal } from "@/components/ui/overlay/Modal";
+import { useSaveForm } from "@/components/shared/hooks/useSaveForm";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { Field } from "@/components/ui/form/Field";
 import { Input } from "@/components/ui/form/Input";
-import { NEW_APPLICATION_STATUS } from "@/components/applications/constants/applicationForm";
+import { NEW_APPLICATION_STATUS } from "@/components/applications/form/applicationForm.constants";
 import {
   initialApplicationForm,
   toApplicationPayload,
-} from "@/components/applications/utils/applicationForm";
+} from "@/components/applications/form/applicationForm.utils";
 
 export function ApplicationForm({
   open,
@@ -39,37 +41,27 @@ export function ApplicationForm({
   // Keyed on the record id by the caller, so opening the dialog for a different row remounts
   // this component and resets the fields rather than showing the previous row's values.
   const [form, set] = useFormFields(() => initialApplicationForm(editing));
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setFieldErrors({});
-    setBusy(true);
-
-    const payload = toApplicationPayload(form);
-
-    try {
-      if (editing) {
-        await api.applications.update(editing.id, payload);
-        onSaved("Application updated");
-      } else {
-        await api.applications.create(payload);
-        onSaved("Application added");
-      }
-      onClose();
-    } catch (failure) {
-      if (failure instanceof ApiError) {
-        setFieldErrors(failure.fieldErrors);
-        setError(failure.message);
-      } else {
-        setError("Could not reach SWITCH. Your application was not saved.");
-      }
-      setBusy(false);
-    }
-  }
+  const { busy, error, fieldErrors, submit } = useSaveForm({
+    save: () => {
+      const payload = toApplicationPayload(form);
+      if (!editing) return applicationsApi.create(payload);
+      // Only what was edited. Sending the rest would write fields this form never touched back
+      // to the values they had when it opened - see `changedFields`.
+      return applicationsApi.update(
+        editing.id,
+        changedFields(toApplicationPayload(initialApplicationForm(editing)), payload),
+      );
+    },
+    saved: savedMessage(
+      form.applicationStatus === "INTERVIEWING",
+      editing?.applicationStatus === "INTERVIEWING",
+      editing ? "Application updated" : "Application added",
+    ),
+    offline: "Could not reach SWITCH. Your application was not saved.",
+    onSaved,
+    onClose,
+  });
 
   return (
     <Modal
@@ -167,7 +159,12 @@ export function ApplicationForm({
             />
           </Field>
 
-          <Field label="Source" htmlFor="app-source" error={fieldErrors.source}>
+          <Field
+            label="Source"
+            htmlFor="app-source"
+            error={fieldErrors.source}
+            hint="Where you found the job."
+          >
             <EnumSelect
               id="app-source"
               table={SOURCE}
@@ -177,7 +174,12 @@ export function ApplicationForm({
             />
           </Field>
 
-          <Field label="Referral" htmlFor="app-referral" error={fieldErrors.referral}>
+          <Field
+            label="Referral"
+            htmlFor="app-referral"
+            error={fieldErrors.referral}
+            hint="Did you ask someone there to refer you?"
+          >
             <EnumSelect
               id="app-referral"
               table={REFERRAL}

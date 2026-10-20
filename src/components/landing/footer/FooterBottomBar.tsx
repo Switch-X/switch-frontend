@@ -1,5 +1,5 @@
 import { Icon } from "@/components/ui/icons";
-import { COPYRIGHT_YEAR } from "@/components/landing/constants/footer";
+import { COPYRIGHT_YEAR } from "@/components/landing/footer/footer.constants";
 import { LocalClock } from "./LocalClock";
 
 export function FooterBottomBar() {
@@ -9,11 +9,6 @@ export function FooterBottomBar() {
         <span>© {COPYRIGHT_YEAR} SWITCH</span>
         <span aria-hidden="true">·</span>
         <span>Built by one person, not a company</span>
-        <span aria-hidden="true">·</span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="size-1.5 rounded-full bg-warn" />
-          No password yet — do not keep anything sensitive here
-        </span>
       </div>
 
       <div className="flex items-center gap-4">

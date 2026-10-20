@@ -1,7 +1,7 @@
 "use client";
 
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { useToast } from "@/components/ui/Toast";
+import { ConfirmDialog } from "@/components/ui/overlay/ConfirmDialog";
+import { useToast } from "@/components/ui/feedback/Toast";
 import { useInterviews } from "@/components/interviews/context/InterviewsProvider";
 import { InterviewForm } from "@/components/interviews/form/InterviewForm";
 import { RoundForm } from "@/components/interviews/round-form/RoundForm";
@@ -39,7 +39,7 @@ export function InterviewDialogs() {
           interview={roundTarget.interview}
           editing={roundTarget.round}
           onClose={closeRound}
-          onSaved={(_updated, message) => saved(message)}
+          onSaved={saved}
         />
       )}
 

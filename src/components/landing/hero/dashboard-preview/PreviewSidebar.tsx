@@ -1,12 +1,12 @@
 import { cx } from "@/lib/cx";
-import { PREVIEW_NAV } from "@/components/landing/constants/dashboardPreview";
+import { PREVIEW_NAV } from "@/components/landing/hero/dashboard-preview/dashboardPreview.constants";
 
 /** The real sidebar, shrunk, with the active row following the cycle. */
 export function PreviewSidebar({ active }: { active: number }) {
   return (
     <div className="hidden w-[124px] shrink-0 border-r border-border bg-surface-muted/60 p-2.5 sm:block">
       <div className="mb-3 flex items-center gap-1.5 px-1.5 py-1">
-        <span className="size-5 rounded-md bg-brand" />
+        <span className="size-5 rounded-md bg-gradient-to-br from-brand to-accent" />
         <span className="text-[11px] font-semibold">SWITCH</span>
       </div>
       {PREVIEW_NAV.map((item, index) => (

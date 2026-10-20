@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button/Button";
 import { useAuthDialog } from "@/components/landing/context/AuthDialogProvider";
 
 /** Sign in and create account - drawn for the dark hero until the header turns solid. */

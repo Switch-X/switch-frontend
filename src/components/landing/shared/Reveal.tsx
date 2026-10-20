@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { prefersReducedMotion } from "@/components/landing/utils/motion";
+import { prefersReducedMotion } from "@/lib/motion";
 
 export function Reveal({
   children,

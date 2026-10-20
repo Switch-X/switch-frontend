@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
 import { Icon } from "@/components/ui/icons";
-import { FOOTER_STAGES } from "@/components/landing/constants/footer";
+import { FOOTER_STAGES } from "@/components/landing/footer/footer.constants";
 
 /** One application, all the way through - "How it works" compressed to a line. */
 export function FooterPipeline() {

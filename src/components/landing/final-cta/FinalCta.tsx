@@ -1,4 +1,4 @@
-import { buttonClass } from "@/components/ui/Button";
+import { buttonClass } from "@/components/ui/button/Button";
 import { Icon } from "@/components/ui/icons";
 import { AuthDialogTrigger } from "@/components/landing/auth/AuthDialogTrigger";
 import { Reveal } from "@/components/landing/shared/Reveal";
@@ -22,10 +22,10 @@ export function FinalCta() {
               Stop losing track of your own job search.
             </h2>
             <p className="mx-auto mt-4 max-w-xl leading-relaxed text-white/70">
-              Create an account and fill it with a worked example in one click — or open a demo
-              account and have a look around first.
+              Create an account and add the application you sent most recently. The rest — calls,
+              take-homes, interview rounds — hangs off it as it happens.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex justify-center">
               <AuthDialogTrigger
                 mode="signup"
                 className={buttonClass({ variant: "inverse", className: "px-6 py-3 text-[15px]" })}
@@ -33,12 +33,6 @@ export function FinalCta() {
                 Create account
                 <Icon.ArrowRight className="size-4" />
               </AuthDialogTrigger>
-              <a
-                href="#top"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-3 text-[15px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
-              >
-                Back to the demo accounts
-              </a>
             </div>
           </div>
         </div>

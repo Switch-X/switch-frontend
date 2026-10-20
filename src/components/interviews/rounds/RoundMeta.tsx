@@ -1,6 +1,6 @@
 import { DIFFICULTY, INTERVIEW_TYPE, describe } from "@/lib/enums";
 import { formatCount, formatDate, formatDuration } from "@/lib/format";
-import type { InterviewRoundView } from "@/lib/types";
+import type { InterviewRoundView } from "@/components/interviews/interviews.types";
 import { Icon } from "@/components/ui/icons";
 
 /** The line under the interviewer's name: format, difficulty, length, date, questions. */

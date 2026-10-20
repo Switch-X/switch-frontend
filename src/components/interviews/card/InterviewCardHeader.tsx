@@ -1,11 +1,16 @@
 import { PROCEEDING_VIA, describe } from "@/lib/enums";
-import { formatCount, formatDate, relativeDay } from "@/lib/format";
-import type { InterviewView } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { IconButton } from "@/components/ui/IconButton";
+import { formatDate, relativeDay } from "@/lib/format";
+import type { InterviewView } from "@/components/interviews/interviews.types";
+import { Badge } from "@/components/ui/display/Badge";
+import { Button } from "@/components/ui/button/Button";
+import { IconButton } from "@/components/ui/button/IconButton";
 import { Icon } from "@/components/ui/icons";
-import { isUpcoming } from "@/components/shared/utils/interviews";
+import {
+  interviewProgress,
+  isUpcoming,
+  progressLabel,
+} from "@/components/shared/utils/interviews";
+import { RoundProgressBar } from "./RoundProgressBar";
 
 export function InterviewCardHeader({
   interview,
@@ -38,11 +43,12 @@ export function InterviewCardHeader({
               <span className="text-ink-subtle">({relativeDay(interview.interviewDate)})</span>
             )}
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Icon.Interviews className="size-4" />
-            {formatCount(interview.currentRound, "round")}
+          <span className="inline-flex items-center gap-1.5 font-medium text-ink">
+            <Icon.Interviews className="size-4 text-ink-muted" />
+            {progressLabel(interviewProgress(interview))}
           </span>
         </p>
+        <RoundProgressBar interview={interview} />
       </div>
 
       <div className="flex shrink-0 items-center gap-1">

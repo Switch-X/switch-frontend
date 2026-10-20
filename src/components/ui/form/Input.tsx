@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from "react";
-import { controlClass } from "./controlClass";
+import { controlClass } from "./control.styles";
 
 export function Input({
   error,

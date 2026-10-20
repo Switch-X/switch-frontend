@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
-import { STAGE_DWELL_MS } from "@/components/landing/constants/journey";
-import type { JourneyStage } from "@/components/landing/types/journey";
+import { STAGE_DWELL_MS } from "@/components/landing/journey/journey.constants";
+import type { JourneyStage } from "@/components/landing/journey/journey.types";
 
 /** The stage's headline and story. Keyed on the stage by its caller, so it animates in afresh. */
 export function StageSummary({

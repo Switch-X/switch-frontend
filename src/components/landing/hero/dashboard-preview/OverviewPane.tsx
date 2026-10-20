@@ -1,5 +1,5 @@
 import { cx } from "@/lib/cx";
-import { PREVIEW_PIPELINE, PREVIEW_STATS } from "@/components/landing/constants/dashboardPreview";
+import { PREVIEW_PIPELINE, PREVIEW_STATS } from "@/components/landing/hero/dashboard-preview/dashboardPreview.constants";
 
 export function OverviewPane() {
   return (

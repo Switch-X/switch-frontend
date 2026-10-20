@@ -1,13 +1,14 @@
 "use client";
 
+import { usersApi } from "@/components/profile/user.api";
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError, api } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { useSession } from "@/lib/session";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { ErrorNote } from "@/components/ui/ErrorNote";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
 import { Icon } from "@/components/ui/icons";
+import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
 /**
  * The delete button, its confirmation, and the error if it fails.
@@ -22,11 +23,15 @@ export function DeleteAccountControls({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function remove() {
+  async function remove(reasons: string[], note: string) {
     setBusy(true);
     setError(null);
     try {
-      await api.users.remove();
+      // Only what they actually said. An untouched form sends nothing rather than empty fields.
+      await usersApi.remove({
+        reasons: reasons.length > 0 ? reasons : undefined,
+        note: note.trim() || undefined,
+      });
       setConfirming(false);
       signOut();
       router.push("/");
@@ -43,7 +48,9 @@ export function DeleteAccountControls({ children }: { children: ReactNode }) {
   return (
     <>
       <div className="space-y-3 p-5">
-        {error && <ErrorNote>{error}</ErrorNote>}
+        {/* A failure that happened with the dialog closed - it reopens with the message inside,
+            so this is only for anything left over after it has been dismissed. */}
+        {error && !confirming && <ErrorNote>{error}</ErrorNote>}
         <div className="flex flex-wrap items-center justify-between gap-3">
           {children}
           <Button variant="danger" onClick={() => setConfirming(true)}>
@@ -53,12 +60,10 @@ export function DeleteAccountControls({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      <ConfirmDialog
+      <DeleteAccountDialog
         open={confirming}
         busy={busy}
-        title="Delete your account?"
-        confirmLabel="Delete everything"
-        message="Every application, interview, assignment and screening call will be deleted along with the account. This cannot be undone."
+        error={error}
         onCancel={() => setConfirming(false)}
         onConfirm={remove}
       />

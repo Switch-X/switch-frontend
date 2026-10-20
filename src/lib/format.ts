@@ -47,6 +47,25 @@ export function formatInstant(value: string | null | undefined): string {
 }
 
 /**
+ * An ISO instant that only means a day, read in UTC.
+ *
+ * <p>UTC is deliberate, not a default. These are pinned to midnight UTC at the point they are
+ * written, so reading them in the browser's own zone would shift the date a day earlier for
+ * anyone behind UTC - a call logged on 5 October showing as the 4th.
+ */
+export function formatDayOf(value: string | null | undefined): string {
+  if (!value) return "—";
+  const moment = new Date(value);
+  if (Number.isNaN(moment.getTime())) return value;
+  return moment.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/**
  * "in 3 days", "yesterday", "today".
  *
  * <p>Counted in whole calendar days rather than by subtracting milliseconds, so an interview
@@ -69,6 +88,28 @@ export function relativeDay(value: string | null | undefined): string | null {
   return `${Math.abs(days)} days ago`;
 }
 
+/**
+ * A deadline, counted from today.
+ *
+ * <p>Separate from `relativeDay` on purpose. A date in the past means two different things
+ * depending on what the date is for: an interview that happened five days ago is a fact, and
+ * "5 days ago" is the right way to say it. A deadline that passed five days ago is not a fact,
+ * it is a problem - and "5 days ago" reports the calendar when the reader needs to be told they
+ * have missed something. The row is already red; the words should agree with it.
+ *
+ * <p>No "yesterday" on this side either. "Yesterday" reads as a reminiscence; "1 day late" reads
+ * as a thing to go and do.
+ */
+export function deadlineIn(value: string | null | undefined): string | null {
+  const days = daysUntil(value);
+  if (days === null) return null;
+
+  if (days === 0) return "due today";
+  if (days === 1) return "due tomorrow";
+  if (days > 0) return `in ${days} days`;
+  return days === -1 ? "1 day late" : `${Math.abs(days)} days late`;
+}
+
 /** How many days from today, negative for the past. Used for sorting and for urgency colour. */
 export function daysUntil(value: string | null | undefined): number | null {
   if (!value) return null;
@@ -77,14 +118,6 @@ export function daysUntil(value: string | null | undefined): number | null {
   const now = new Date();
   const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   return Math.round((Date.UTC(year, month - 1, day) - today) / 86_400_000);
-}
-
-/** Today as `yyyy-MM-dd` in the reader's own zone, for defaulting date inputs. */
-export function todayAsInputValue(): string {
-  const now = new Date();
-  const month = `${now.getMonth() + 1}`.padStart(2, "0");
-  const day = `${now.getDate()}`.padStart(2, "0");
-  return `${now.getFullYear()}-${month}-${day}`;
 }
 
 /** `90` to `1h 30m`. Zero is worth showing as "—" rather than "0m". */

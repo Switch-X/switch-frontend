@@ -1,26 +1,24 @@
 "use client";
 
-import { Card } from "@/components/ui/Card";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { SkeletonList } from "@/components/ui/Skeleton";
+import { Card } from "@/components/ui/layout/Card";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { SkeletonList } from "@/components/ui/feedback/Skeleton";
 import { Icon } from "@/components/ui/icons";
 import { FilterableEmptyState } from "@/components/shared/list/FilterableEmptyState";
-import { linkedCompanyName } from "@/components/shared/utils/companyNames";
+import { applicationLabel } from "@/components/shared/utils/companyNames";
 import { InterviewCard } from "@/components/interviews/card/InterviewCard";
 import { useInterviews } from "@/components/interviews/context/InterviewsProvider";
 
 /**
  * The cards, in the order the backend sent them.
  *
- * <p>Left alone on purpose: `InterviewServiceImpl` sorts upcoming first by nearest date, then past
- * by most recent, then undated - computed against the account holder's own timezone rather than
- * the server's. Re-sorting here would throw that away and get it wrong for anyone whose zone
- * differs from this browser's.
+ * <p>Left alone on purpose, and now it has to be: the list is one page of a larger set, ordered
+ * by the query. Sorting here would only reorder the ten rows on this page while the server
+ * decided which ten they were, which looks sorted and is not.
  */
 export function InterviewList() {
   const {
     interviews,
-    companyOf,
     filtered,
     clearFilters,
     editor,
@@ -28,7 +26,7 @@ export function InterviewList() {
     interviewDeletion,
     roundDeletion,
   } = useInterviews();
-  const rows = interviews.data ?? [];
+  const rows = interviews.data?.content ?? [];
 
   if (interviews.error) return <ErrorNote>{interviews.error}</ErrorNote>;
 
@@ -47,7 +45,6 @@ export function InterviewList() {
           createLabel="New interview"
           onCreate={editor.create}
           onClearFilters={clearFilters}
-          onSampleDataLoaded={interviews.reload}
         />
       </Card>
     );
@@ -59,11 +56,7 @@ export function InterviewList() {
         <InterviewCard
           key={interview.id}
           interview={interview}
-          company={linkedCompanyName(
-            companyOf,
-            interview.applicationId,
-            "Not linked to an application",
-          )}
+          company={applicationLabel(interview, "Not linked to an application")}
           onEdit={() => editor.edit(interview)}
           onDelete={() => interviewDeletion.request(interview)}
           onAddRound={() => openRound(interview, null)}

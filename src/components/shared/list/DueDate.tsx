@@ -1,5 +1,5 @@
 import { cx } from "@/lib/cx";
-import { formatDateShort, relativeDay } from "@/lib/format";
+import { deadlineIn, formatDateShort } from "@/lib/format";
 
 /**
  * A deadline in a table cell: the date, how far off it is, and its urgency as a colour.
@@ -13,7 +13,7 @@ export function DueDate({ date, tone }: { date: string | null; tone: string }) {
   return (
     <span className={cx("font-medium", tone)}>
       {formatDateShort(date)}
-      <span className="ml-1.5 text-xs font-normal opacity-80">{relativeDay(date)}</span>
+      <span className="ml-1.5 text-xs font-normal opacity-80">{deadlineIn(date)}</span>
     </span>
   );
 }

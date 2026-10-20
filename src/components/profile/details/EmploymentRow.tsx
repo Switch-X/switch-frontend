@@ -1,5 +1,5 @@
-import type { ExperiencedProfileDto } from "@/lib/types";
-import { IconButton } from "@/components/ui/IconButton";
+import type { ExperiencedProfileDto } from "@/components/profile/user.types";
+import { IconButton } from "@/components/ui/button/IconButton";
 import { Icon } from "@/components/ui/icons";
 import { Input } from "@/components/ui/form/Input";
 

@@ -1,16 +1,12 @@
 import { Icon } from "@/components/ui/icons";
+import { Logo } from "@/components/ui/brand/Logo";
 import { AuthDialogTrigger } from "@/components/landing/auth/AuthDialogTrigger";
 
 /** What this is, in two sentences, and a second chance to start. */
 export function FooterBrand() {
   return (
     <div className="max-w-sm">
-      <span className="flex items-center gap-2.5">
-        <span className="flex size-9 items-center justify-center rounded-xl bg-brand text-white shadow-sm">
-          <Icon.Sparkle className="size-4.5" />
-        </span>
-        <span className="font-display text-lg font-bold tracking-tight">SWITCH</span>
-      </span>
+      <Logo />
 
       <p className="mt-4 text-sm leading-relaxed text-ink-muted">
         A job search has too many moving parts to keep in your head. SWITCH keeps the

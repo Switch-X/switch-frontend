@@ -1,18 +1,24 @@
 "use client";
 
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { SkeletonList } from "@/components/ui/Skeleton";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { SkeletonList } from "@/components/ui/feedback/Skeleton";
 import { Icon } from "@/components/ui/icons";
 import { DataTable } from "@/components/shared/list/DataTable";
 import { FilterableEmptyState } from "@/components/shared/list/FilterableEmptyState";
-import { SCREENING_CALL_COLUMNS } from "@/components/screening-calls/constants/screeningCallList";
+import { SCREENING_CALL_COLUMNS } from "@/components/screening-calls/screeningCallList.constants";
 import { useScreeningCalls } from "@/components/screening-calls/context/ScreeningCallsProvider";
-import { sortByMostRecentContact } from "@/components/screening-calls/utils/screeningCallList";
 import { ScreeningCallRow } from "./ScreeningCallRow";
 
+/**
+ * The rows as the server ordered them: most recent call first, the undated ones last.
+ *
+ * <p>This used to sort in the browser, which was fine while the endpoint returned everything.
+ * Now that it returns one page, sorting here would only reorder the ten rows on this page while
+ * the query decided which ten they were.
+ */
 export function ScreeningCallsTable() {
-  const { calls, companyOf, filtered, clearFilters, editor, deletion } = useScreeningCalls();
-  const rows = sortByMostRecentContact(calls.data ?? []);
+  const { calls, filtered, clearFilters, editor, deletion } = useScreeningCalls();
+  const rows = calls.data?.content ?? [];
 
   if (calls.error) {
     return (
@@ -36,7 +42,6 @@ export function ScreeningCallsTable() {
         createLabel="Log a call"
         onCreate={editor.create}
         onClearFilters={clearFilters}
-        onSampleDataLoaded={calls.reload}
       />
     );
   }
@@ -47,7 +52,7 @@ export function ScreeningCallsTable() {
         <ScreeningCallRow
           key={call.id}
           call={call}
-          linked={call.applicationId !== null ? (companyOf.get(call.applicationId) ?? null) : null}
+          linked={call.linkedApplication}
           onEdit={editor.edit}
           onDelete={deletion.request}
         />

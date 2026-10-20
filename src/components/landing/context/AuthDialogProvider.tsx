@@ -9,7 +9,7 @@
  */
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import type { AuthMode } from "@/components/landing/types/auth";
+import type { AuthMode } from "@/components/landing/auth/authDialog.types";
 
 type AuthDialogValue = {
   mode: AuthMode | null;

@@ -1,13 +1,15 @@
 "use client";
 
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { useToast } from "@/components/ui/Toast";
+import { ConfirmDialog } from "@/components/ui/overlay/ConfirmDialog";
+import { Modal } from "@/components/ui/overlay/Modal";
+import { WorkflowTimeline } from "@/components/workflows/timeline/WorkflowTimeline";
+import { useToast } from "@/components/ui/feedback/Toast";
 import { useApplications } from "@/components/applications/context/ApplicationsProvider";
 import { ApplicationForm } from "@/components/applications/form/ApplicationForm";
 
 /** The create/edit dialog and the delete confirmation - nothing on screen until one is opened. */
 export function ApplicationDialogs() {
-  const { editor, deletion, applications } = useApplications();
+  const { editor, deletion, applications, workflowFor, closeWorkflow } = useApplications();
   const toast = useToast();
 
   return (
@@ -25,6 +27,19 @@ export function ApplicationDialogs() {
           }}
         />
       )}
+
+      <Modal
+        open={workflowFor !== null}
+        onClose={closeWorkflow}
+        title={workflowFor ? workflowFor.companyName : "Workflow"}
+        description={
+          workflowFor?.jobProfile
+            ? `${workflowFor.jobProfile} — everything that has happened so far`
+            : "Everything that has happened so far"
+        }
+      >
+        {workflowFor && <WorkflowTimeline applicationId={workflowFor.id} />}
+      </Modal>
 
       <ConfirmDialog
         open={deletion.pending !== null}

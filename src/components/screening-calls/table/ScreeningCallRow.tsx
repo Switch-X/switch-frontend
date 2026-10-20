@@ -1,16 +1,17 @@
 import { PROCEEDING_VIA, SCREENING_OUTCOME, describe } from "@/lib/enums";
 import { formatDateShort, formatDuration, relativeDay } from "@/lib/format";
-import type { ScreeningCallView } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
+import type { ScreeningCallView } from "@/components/screening-calls/screeningCalls.types";
+import { Badge } from "@/components/ui/display/Badge";
 import { DataTableRow } from "@/components/shared/list/DataTable";
 import { RowActions } from "@/components/shared/list/RowActions";
 
 /**
  * One call.
  *
- * <p>The company column falls back to the call's own `companyName` before the linked
- * application's. A cold recruiter call is the common case here and has no application behind it,
- * which is exactly why the backend keeps `companyName` on the call itself.
+ * <p>`companyName` is filled in either way now - from the linked application when there is one,
+ * from the call's own column when there is not - so the column no longer has to pick between two
+ * half-answers. The line under it names the application, with its role, when the call came
+ * through one.
  */
 export function ScreeningCallRow({
   call,
@@ -30,13 +31,8 @@ export function ScreeningCallRow({
   return (
     <DataTableRow>
       <td className="px-5 py-3.5">
-        <div className="font-medium text-ink">{call.companyName ?? linked ?? "Not recorded"}</div>
-        {linked && call.companyName && linked !== call.companyName && (
-          <div className="text-xs text-ink-subtle">Linked to {linked}</div>
-        )}
-        {!linked && call.applicationId === null && (
-          <div className="text-xs text-ink-subtle">Not linked</div>
-        )}
+        <div className="font-medium text-ink">{call.companyName ?? "Not recorded"}</div>
+        <div className="text-xs text-ink-subtle">{linked ?? "Not linked"}</div>
       </td>
       <td className="px-3 py-3.5 text-ink-muted">{call.hrName ?? "—"}</td>
       <td className="px-3 py-3.5">

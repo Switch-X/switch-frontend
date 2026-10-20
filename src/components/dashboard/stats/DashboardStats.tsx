@@ -1,13 +1,13 @@
 "use client";
 
-import { SkeletonList } from "@/components/ui/Skeleton";
-import { Stat } from "@/components/ui/Stat";
+import { SkeletonList } from "@/components/ui/feedback/Skeleton";
+import { Stat } from "@/components/ui/display/Stat";
 import { useDashboardData } from "@/components/dashboard/context/DashboardDataProvider";
 import {
   countActive,
   countOffers,
   countOutstanding,
-} from "@/components/dashboard/utils/summary";
+} from "@/components/dashboard/summary.utils";
 
 /** The four totals. Read second - the deadlines above them are what people open this for. */
 export function DashboardStats() {

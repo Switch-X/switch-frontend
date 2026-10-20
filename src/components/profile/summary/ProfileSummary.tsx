@@ -3,8 +3,8 @@
 import { useSession } from "@/lib/session";
 import { WORKING_PROFILE, describe } from "@/lib/enums";
 import { formatInstant, initialsOf } from "@/lib/format";
-import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/display/Badge";
+import { Card } from "@/components/ui/layout/Card";
 
 /** Who this account is, at a glance - above the forms that change it. */
 export function ProfileSummary() {
@@ -29,10 +29,7 @@ export function ProfileSummary() {
           )}
         </div>
         <p className="mt-0.5 text-sm text-ink-muted">{user.email}</p>
-        <p className="mt-0.5 text-xs text-ink-subtle">
-          Account <code className="rounded bg-surface-sunken px-1.5 py-0.5">{user.iamUserId}</code>{" "}
-          · joined {formatInstant(user.createdAt)}
-        </p>
+        <p className="mt-0.5 text-xs text-ink-subtle">Joined {formatInstant(user.createdAt)}</p>
       </div>
     </Card>
   );

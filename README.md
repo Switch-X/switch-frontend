@@ -16,16 +16,15 @@ npm install
 npm run dev                  # http://localhost:3000
 ```
 
-Then open <http://localhost:3000> and pick one of the three demo accounts. They are the ones
-`V900__demo_data.sql` seeds on a fresh database, so the dashboard lands with real rows in it
-rather than an empty state.
+Then open <http://localhost:3000>, click **Create account**, and pick an account id. That id is
+how you sign in from then on. A new account starts empty; **Load sample data** fills it in one
+click (see below).
 
 ## Sample data
 
-The backend seed runs once, on a fresh database, for three fixed accounts. It cannot help an
-account you have just signed up with, and it cannot be re-run — so the frontend carries its own
-worked example in [`src/lib/sampleData.ts`](src/lib/sampleData.ts), loadable for **any** account
-from a **Load sample data** button.
+The backend seeds nothing, so every account starts empty. The frontend carries a worked example
+in [`src/lib/sampleData.ts`](src/lib/sampleData.ts), loadable for any account from a
+**Load sample data** button.
 
 It creates 11 applications covering every one of the ten `ApplicationStatus` values, 4 interviews
 with 8 rounds between them (questions, feedback, and a rejection with its reasons), 4 assignments
@@ -72,9 +71,8 @@ ever sees it. Proxying means the integration works against the backend exactly a
 ### Signing in
 
 `HeaderCurrentUser` on the backend reads the caller from an `X-User-Id` request header and trusts
-it outright — there is no password to check and no token to verify. So the sign-in screen here is
-an account **chooser**, not an authenticator, and it says so rather than painting a fake password
-box over it.
+it outright — there is no password to check and no token to verify. So the sign-in screen here
+asks for an account id and nothing else, rather than painting a fake password box over it.
 
 The id is held in `localStorage` and attached to every request by
 [`src/lib/api.ts`](src/lib/api.ts). When the resource server is wired up, the proxy attaches a
@@ -97,10 +95,10 @@ Rebuilt as a product page rather than a form with copy beside it. One folder per
 
 | Folder | What it does |
 |---|---|
-| `hero/` | Aurora background, gradient headline, and three demo chips that sign you in with one click |
+| `hero/` | Aurora background, gradient headline, and the **Create account** button |
 | `hero/dashboard-preview/` | The real layout at miniature scale, cycling through three views on a timer |
 | `journey/` | Five stages of a job search — auto-advancing, clickable, pauses the moment you touch it |
-| `world-clocks/` | Three genuinely live clocks; a card goes dark when that person's quiet hours are running |
+| `world-clocks/` | Three genuinely live clocks; a card goes dark when that city's quiet hours are running |
 | `stats/`, `features/` | Counted stats, and a bento grid with a cursor-following spotlight |
 | `faq/` | `<details>` accordion — keyboard operable, findable by in-page search, no JavaScript at all |
 | `auth/` | The sign-in / sign-up dialog, and the buttons around the page that open it |

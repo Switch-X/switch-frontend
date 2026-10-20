@@ -1,36 +1,15 @@
-import type { ApplicationView } from "@/lib/types";
-
 /**
- * `applicationId` to something a reader recognises.
+ * What to call a record that links to an application.
  *
- * <p>Interviews, assignments and screening calls carry only the id, and "Application #1" tells the
- * reader nothing. `withRole` adds the role after a dash - worth it on the interview cards, where one
- * company can have more than one loop open, and noise in a table column.
+ * <p>Interviews, assignments and screening calls carry only an `applicationId` in the database,
+ * and "Interview #14" tells the reader nothing. Their views now bring the company and role with
+ * them - the backend joins it once per page - so naming one needs no second call and no lookup
+ * map, which is all this file used to be.
  */
-export function companyNameMap(
-  applications: ApplicationView[],
-  { withRole = false }: { withRole?: boolean } = {},
-): Map<number, string> {
-  return new Map(
-    applications.map((application) => [
-      application.id,
-      withRole && application.jobProfile
-        ? `${application.companyName} — ${application.jobProfile}`
-        : application.companyName,
-    ]),
-  );
-}
-
-/**
- * The name to show for a record's linked application, or `unlinked` when it has none.
- *
- * <p>A link to an application outside the loaded page still gets a label rather than a blank.
- */
-export function linkedCompanyName(
-  companyOf: Map<number, string>,
-  applicationId: number | null,
+export function applicationLabel(
+  record: { companyName: string | null; jobProfile: string | null },
   unlinked: string,
 ): string {
-  if (applicationId === null) return unlinked;
-  return companyOf.get(applicationId) ?? `Application #${applicationId}`;
+  if (!record.companyName) return unlinked;
+  return record.jobProfile ? `${record.companyName} — ${record.jobProfile}` : record.companyName;
 }

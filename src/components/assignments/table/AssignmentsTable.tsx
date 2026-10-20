@@ -1,19 +1,25 @@
 "use client";
 
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { SkeletonList } from "@/components/ui/Skeleton";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { SkeletonList } from "@/components/ui/feedback/Skeleton";
 import { Icon } from "@/components/ui/icons";
 import { DataTable } from "@/components/shared/list/DataTable";
 import { FilterableEmptyState } from "@/components/shared/list/FilterableEmptyState";
-import { linkedCompanyName } from "@/components/shared/utils/companyNames";
-import { ASSIGNMENT_COLUMNS } from "@/components/assignments/constants/assignmentList";
+import { applicationLabel } from "@/components/shared/utils/companyNames";
+import { ASSIGNMENT_COLUMNS } from "@/components/assignments/assignmentList.constants";
 import { useAssignments } from "@/components/assignments/context/AssignmentsProvider";
-import { sortBySubmissionDeadline } from "@/components/assignments/utils/assignmentList";
 import { AssignmentRow } from "./AssignmentRow";
 
+/**
+ * The rows as the server ordered them: soonest deadline first, the undated ones last.
+ *
+ * <p>This used to sort in the browser, which was fine while the endpoint returned everything.
+ * Now that it returns one page, sorting here would only reorder the ten rows on this page while
+ * the query decided which ten they were.
+ */
 export function AssignmentsTable() {
-  const { assignments, companyOf, filtered, clearFilters, editor, deletion } = useAssignments();
-  const rows = sortBySubmissionDeadline(assignments.data ?? []);
+  const { assignments, filtered, clearFilters, editor, deletion } = useAssignments();
+  const rows = assignments.data?.content ?? [];
 
   if (assignments.error) {
     return (
@@ -37,7 +43,6 @@ export function AssignmentsTable() {
         createLabel="New assignment"
         onCreate={editor.create}
         onClearFilters={clearFilters}
-        onSampleDataLoaded={assignments.reload}
       />
     );
   }
@@ -48,7 +53,7 @@ export function AssignmentsTable() {
         <AssignmentRow
           key={assignment.id}
           assignment={assignment}
-          company={linkedCompanyName(companyOf, assignment.applicationId, "Not linked")}
+          company={applicationLabel(assignment, "Not linked")}
           onEdit={editor.edit}
           onDelete={deletion.request}
         />

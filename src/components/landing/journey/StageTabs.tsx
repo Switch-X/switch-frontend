@@ -1,5 +1,5 @@
 import { cx } from "@/lib/cx";
-import type { JourneyStage } from "@/components/landing/types/journey";
+import type { JourneyStage } from "@/components/landing/journey/journey.types";
 
 /**
  * The stage rail. Horizontally scrollable on a phone rather than wrapped into two rows, which

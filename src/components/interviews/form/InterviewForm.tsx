@@ -9,24 +9,29 @@
  * offering them here would build a form whose round edits are silently discarded on save.
  */
 
-import { useState, type FormEvent } from "react";
-import { ApiError, api } from "@/lib/api";
+import { interviewsApi } from "@/components/interviews/interviews.api";
 import { PROCEEDING_VIA } from "@/lib/enums";
-import { useFormFields } from "@/lib/hooks";
-import type { InterviewView } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { Modal } from "@/components/ui/Modal";
+import { useFormFields } from "@/lib/hooks/useFormFields";
+import { changedFields } from "@/lib/patch";
+import type { InterviewView } from "@/components/interviews/interviews.types";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { Modal } from "@/components/ui/overlay/Modal";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { Field } from "@/components/ui/form/Field";
 import { Input } from "@/components/ui/form/Input";
 import { ApplicationSelect } from "@/components/shared/application-select/ApplicationSelect";
-import { NEW_INTERVIEW_VIA } from "@/components/interviews/constants/interviewForm";
+import { StandaloneCompanyField } from "@/components/shared/application-select/StandaloneCompanyField";
+import { useSaveForm } from "@/components/shared/hooks/useSaveForm";
+import {
+  EXPECTED_ROUNDS_RANGE,
+  NEW_INTERVIEW_VIA,
+} from "@/components/interviews/form/interviewForm.constants";
 import {
   initialInterviewForm,
   toCreateInterviewPayload,
   toUpdateInterviewPayload,
-} from "@/components/interviews/utils/interviewForm";
+} from "@/components/interviews/form/interviewForm.utils";
 
 export function InterviewForm({
   open,
@@ -40,35 +45,25 @@ export function InterviewForm({
   onSaved: (message: string) => void;
 }) {
   const [form, set] = useFormFields(() => initialInterviewForm(editing));
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setFieldErrors({});
-    setBusy(true);
-
-    try {
-      if (editing) {
-        await api.interviews.update(editing.id, toUpdateInterviewPayload(form));
-        onSaved("Interview updated");
-      } else {
-        await api.interviews.create(toCreateInterviewPayload(form));
-        onSaved("Interview added");
-      }
-      onClose();
-    } catch (failure) {
-      if (failure instanceof ApiError) {
-        setFieldErrors(failure.fieldErrors);
-        setError(failure.message);
-      } else {
-        setError("Could not reach SWITCH. Your interview was not saved.");
-      }
-      setBusy(false);
-    }
-  }
+  const { busy, error, fieldErrors, submit } = useSaveForm({
+    // Create and update take different payloads: rounds are added separately, so only the
+    // update carries them.
+    save: () => {
+      if (!editing) return interviewsApi.create(toCreateInterviewPayload(form));
+      return interviewsApi.update(
+        editing.id,
+        changedFields(
+          toUpdateInterviewPayload(initialInterviewForm(editing)),
+          toUpdateInterviewPayload(form),
+        ),
+      );
+    },
+    saved: editing ? "Interview updated" : "Interview added",
+    offline: "Could not reach SWITCH. Your interview was not saved.",
+    onSaved,
+    onClose,
+  });
 
   return (
     <Modal
@@ -105,6 +100,15 @@ export function InterviewForm({
           />
         </Field>
 
+        <StandaloneCompanyField
+          applicationId={form.applicationId}
+          id="interview-company"
+          value={form.companyName}
+          error={fieldErrors.companyName}
+          hint="Who the interview is with. Needed because there is no application to take it from."
+          onChange={(value) => set("companyName", value)}
+        />
+
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Interview date"
@@ -121,20 +125,36 @@ export function InterviewForm({
           </Field>
 
           <Field
-            label="How it came about"
-            htmlFor="interview-via"
-            required
-            error={fieldErrors.interviewProceedingVia}
+            label="Rounds expected"
+            htmlFor="interview-expected-rounds"
+            error={fieldErrors.expectedTotalRounds}
+            hint="How many rounds the company said there will be."
           >
-            <EnumSelect
-              id="interview-via"
-              table={PROCEEDING_VIA}
-              value={form.interviewProceedingVia}
-              placeholder="Choose one"
-              onChange={(value) => set("interviewProceedingVia", value ?? NEW_INTERVIEW_VIA)}
+            <Input
+              id="interview-expected-rounds"
+              type="number"
+              min={EXPECTED_ROUNDS_RANGE.min}
+              max={EXPECTED_ROUNDS_RANGE.max}
+              value={form.expectedTotalRounds}
+              onChange={(event) => set("expectedTotalRounds", event.target.value)}
             />
           </Field>
         </div>
+
+        <Field
+          label="How it came about"
+          htmlFor="interview-via"
+          required
+          error={fieldErrors.interviewProceedingVia}
+        >
+          <EnumSelect
+            id="interview-via"
+            table={PROCEEDING_VIA}
+            value={form.interviewProceedingVia}
+            placeholder="Choose one"
+            onChange={(value) => set("interviewProceedingVia", value ?? NEW_INTERVIEW_VIA)}
+          />
+        </Field>
 
         {error && <ErrorNote>{error}</ErrorNote>}
       </form>

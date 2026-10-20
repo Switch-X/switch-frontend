@@ -1,4 +1,4 @@
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/layout/Card";
 import { RecentActivityList } from "./RecentActivityList";
 
 /** "Latest movement" - the card renders on the server, the list inside it on the client. */

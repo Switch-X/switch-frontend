@@ -7,24 +7,27 @@
  * - see `NEW_ASSIGNMENT` for the defaults a new one starts from.
  */
 
-import { useState, type FormEvent } from "react";
-import { ApiError, api } from "@/lib/api";
+import { assignmentsApi } from "@/components/assignments/assignments.api";
 import { ASSIGNMENT_OUTCOME, DIFFICULTY, SUBMISSION } from "@/lib/enums";
-import { useFormFields } from "@/lib/hooks";
-import type { AssignmentView } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { Modal } from "@/components/ui/Modal";
+import { useFormFields } from "@/lib/hooks/useFormFields";
+import { changedFields } from "@/lib/patch";
+import type { AssignmentView } from "@/components/assignments/assignments.types";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { Modal } from "@/components/ui/overlay/Modal";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { Field } from "@/components/ui/form/Field";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/Textarea";
 import { ApplicationSelect } from "@/components/shared/application-select/ApplicationSelect";
-import { NEW_ASSIGNMENT } from "@/components/assignments/constants/assignmentForm";
+import { StandaloneCompanyField } from "@/components/shared/application-select/StandaloneCompanyField";
+import { useSaveForm } from "@/components/shared/hooks/useSaveForm";
+import { savedMessage } from "@/components/shared/utils/interviewNudge";
+import { NEW_ASSIGNMENT } from "@/components/assignments/form/assignmentForm.constants";
 import {
   initialAssignmentForm,
   toAssignmentPayload,
-} from "@/components/assignments/utils/assignmentForm";
+} from "@/components/assignments/form/assignmentForm.utils";
 
 export function AssignmentForm({
   open,
@@ -38,37 +41,25 @@ export function AssignmentForm({
   onSaved: (message: string) => void;
 }) {
   const [form, set] = useFormFields(() => initialAssignmentForm(editing));
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setFieldErrors({});
-    setBusy(true);
-
-    const payload = toAssignmentPayload(form);
-
-    try {
-      if (editing) {
-        await api.assignments.update(editing.id, payload);
-        onSaved("Assignment updated");
-      } else {
-        await api.assignments.create(payload);
-        onSaved("Assignment added");
-      }
-      onClose();
-    } catch (failure) {
-      if (failure instanceof ApiError) {
-        setFieldErrors(failure.fieldErrors);
-        setError(failure.message);
-      } else {
-        setError("Could not reach SWITCH. Your assignment was not saved.");
-      }
-      setBusy(false);
-    }
-  }
+  const { busy, error, fieldErrors, submit } = useSaveForm({
+    save: () => {
+      const payload = toAssignmentPayload(form);
+      if (!editing) return assignmentsApi.create(payload);
+      return assignmentsApi.update(
+        editing.id,
+        changedFields(toAssignmentPayload(initialAssignmentForm(editing)), payload),
+      );
+    },
+    saved: savedMessage(
+      form.assignmentOutcome === "INTERVIEWING",
+      editing?.assignmentOutcome === "INTERVIEWING",
+      editing ? "Assignment updated" : "Assignment added",
+    ),
+    offline: "Could not reach SWITCH. Your assignment was not saved.",
+    onSaved,
+    onClose,
+  });
 
   return (
     <Modal
@@ -100,6 +91,15 @@ export function AssignmentForm({
             onChange={(applicationId) => set("applicationId", applicationId)}
           />
         </Field>
+
+        <StandaloneCompanyField
+          applicationId={form.applicationId}
+          id="assignment-company"
+          value={form.companyName}
+          error={fieldErrors.companyName}
+          hint="Who sent the task. Needed because there is no application to take it from."
+          onChange={(value) => set("companyName", value)}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Assigned on" htmlFor="assignment-assigned" error={fieldErrors.dateAssigned}>

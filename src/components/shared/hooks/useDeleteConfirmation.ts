@@ -9,7 +9,7 @@
  */
 
 import { useCallback, useState } from "react";
-import { useToast } from "@/components/ui/Toast";
+import { useToast } from "@/components/ui/feedback/Toast";
 
 export type DeleteConfirmation<T> = {
   /** The record the dialog is asking about, or null while it is closed. */

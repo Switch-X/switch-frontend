@@ -1,11 +1,29 @@
 import { Icon } from "@/components/ui/icons";
-import { IconButton } from "@/components/ui/IconButton";
+import { IconButton } from "@/components/ui/button/IconButton";
 
-/** The edit and delete buttons in the last cell of a table row. */
-export function RowActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+/**
+ * The buttons in the last cell of a table row.
+ *
+ * <p>`onWorkflow` is optional: only applications have a walkthrough to open, and the other
+ * tables pass nothing rather than a disabled button nobody can use.
+ */
+export function RowActions({
+  onEdit,
+  onDelete,
+  onWorkflow,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  onWorkflow?: () => void;
+}) {
   return (
     <td className="px-5 py-3.5">
       <div className="flex justify-end gap-1">
+        {onWorkflow && (
+          <IconButton label="Workflow" onClick={onWorkflow}>
+            <Icon.Clock className="size-4" />
+          </IconButton>
+        )}
         <IconButton label="Edit" onClick={onEdit}>
           <Icon.Pencil className="size-4" />
         </IconButton>

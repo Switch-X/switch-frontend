@@ -1,4 +1,4 @@
-import { FOOTER_COLUMNS } from "@/components/landing/constants/footer";
+import { FOOTER_COLUMNS } from "@/components/landing/footer/footer.constants";
 
 export function FooterLinkColumns() {
   return (

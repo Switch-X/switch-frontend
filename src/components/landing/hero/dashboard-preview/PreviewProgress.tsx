@@ -1,5 +1,5 @@
 import { cx } from "@/lib/cx";
-import { PREVIEW_VIEWS } from "@/components/landing/constants/dashboardPreview";
+import { PREVIEW_VIEWS } from "@/components/landing/hero/dashboard-preview/dashboardPreview.constants";
 
 /** Progress pips under the window, mirroring the timer. */
 export function PreviewProgress({ active }: { active: number }) {

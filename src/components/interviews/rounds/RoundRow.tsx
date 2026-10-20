@@ -3,23 +3,34 @@
 import { useState } from "react";
 import { cx } from "@/lib/cx";
 import { INTERVIEW_OUTCOME, describe } from "@/lib/enums";
-import type { InterviewRoundView } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
-import { IconButton } from "@/components/ui/IconButton";
+import type { InterviewRoundView } from "@/components/interviews/interviews.types";
+import { Badge } from "@/components/ui/display/Badge";
+import { IconButton } from "@/components/ui/button/IconButton";
 import { Icon } from "@/components/ui/icons";
-import { hasRoundDetail } from "@/components/interviews/utils/rounds";
+import { ROUND_BUBBLE_TONE } from "@/components/interviews/roundProgress.constants";
+import { hasRoundDetail } from "@/components/interviews/rounds/rounds.utils";
 import { RoundDetails } from "./RoundDetails";
 import { RoundMeta } from "./RoundMeta";
 
-/** One round: a summary line, and the questions and feedback behind a "Details" toggle. */
+/**
+ * One round: where it sits in the process, a summary line, and the questions and feedback behind
+ * a "Details" toggle. The number is coloured by how the round went, and the round still waiting
+ * on its result is marked current.
+ */
 export function RoundRow({
   round,
-  index,
+  position,
+  total,
+  current,
   onEdit,
   onDelete,
 }: {
   round: InterviewRoundView;
-  index: number;
+  /** From 1. */
+  position: number;
+  /** Rounds in the whole process, recorded or expected. */
+  total: number;
+  current: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -29,13 +40,23 @@ export function RoundRow({
   const hasDetail = hasRoundDetail(round);
 
   return (
-    <li>
+    <li className={cx(current && "bg-warn-soft/25")}>
       <div className="flex flex-wrap items-center gap-3 px-5 py-3.5">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-xs font-semibold text-ink-muted">
-          {index + 1}
+        <span
+          className={cx(
+            "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+            ROUND_BUBBLE_TONE[round.interviewOutcome],
+            current && "ring-2 ring-warn/40 ring-offset-2 ring-offset-surface",
+          )}
+        >
+          {position}
         </span>
 
         <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold tracking-wide text-ink-subtle uppercase">
+            Round {position} of {total}
+            {current && <span className="text-warn"> · Current</span>}
+          </p>
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium text-ink">
               {round.interviewerName ?? "Interviewer not recorded"}

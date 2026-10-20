@@ -1,9 +1,9 @@
 import { cx } from "@/lib/cx";
 import { Icon } from "@/components/ui/icons";
-import { formatClock, isQuiet, minutesNowIn } from "@/components/landing/utils/clock";
-import type { ClockPlace } from "@/components/landing/types/worldClocks";
+import { formatClock, isQuiet, minutesNowIn } from "@/components/landing/clock.utils";
+import type { ClockPlace } from "@/components/landing/world-clocks/worldClocks.types";
 
-/** One city's clock. Goes dark while that person's quiet hours are running. */
+/** One city's clock. Goes dark while that city's quiet hours are running. */
 export function ClockCard({ place, live }: { place: ClockPlace; live: boolean }) {
   const nowMinutes = live ? minutesNowIn(place.zone) : null;
   const quiet = nowMinutes !== null && isQuiet(nowMinutes, place.quiet);
@@ -16,12 +16,9 @@ export function ClockCard({ place, live }: { place: ClockPlace; live: boolean })
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className={cx("text-sm font-semibold", quiet ? "text-white" : "text-ink")}>
-            {place.person}
-          </p>
-          <p className={cx("text-xs", quiet ? "text-white/60" : "text-ink-subtle")}>{place.city}</p>
-        </div>
+        <p className={cx("min-w-0 text-sm font-semibold", quiet ? "text-white" : "text-ink")}>
+          {place.city}
+        </p>
         <span
           className={cx(
             "flex size-8 shrink-0 items-center justify-center rounded-full transition-colors duration-700",

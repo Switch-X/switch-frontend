@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { cx } from "@/lib/cx";
-import { daysUntil, formatDate, relativeDay } from "@/lib/format";
+import { daysUntil, deadlineIn, formatDate } from "@/lib/format";
 import { Icon } from "@/components/ui/icons";
-import type { DueItem } from "@/components/dashboard/types/dueItem";
+import type { DueItem } from "@/components/dashboard/due-soon/dueItem.types";
 
 export function DueSoonItem({ item }: { item: DueItem }) {
   const days = daysUntil(item.date);
@@ -28,7 +28,7 @@ export function DueSoonItem({ item }: { item: DueItem }) {
         <span
           className={cx("shrink-0 text-right text-sm font-medium", overdue ? "text-bad" : "text-warn")}
         >
-          {relativeDay(item.date)}
+          {deadlineIn(item.date)}
           <span className="block text-xs font-normal text-ink-subtle">{formatDate(item.date)}</span>
         </span>
       </Link>

@@ -1,7 +1,7 @@
-import type { ExperiencedProfileDto } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
+import type { ExperiencedProfileDto } from "@/components/profile/user.types";
+import { Button } from "@/components/ui/button/Button";
 import { Icon } from "@/components/ui/icons";
-import { tenureOnRecord } from "@/components/profile/utils/detailsForm";
+import { tenureOnRecord } from "@/components/profile/details/detailsForm.utils";
 import { EmploymentRow } from "./EmploymentRow";
 
 /** The roles on record, edited row by row, with their time added up underneath. */

@@ -1,8 +1,8 @@
 "use client";
 
 import { INTERVIEW_OUTCOME, PROCEEDING_VIA } from "@/lib/enums";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/button/Button";
+import { Card } from "@/components/ui/layout/Card";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { CheckboxFilter } from "@/components/shared/filters/CheckboxFilter";
 import { FilterField } from "@/components/shared/filters/FilterField";
@@ -47,7 +47,7 @@ export function InterviewFilters() {
 
       <ResultCount
         loading={interviews.loading}
-        count={interviews.data?.length ?? 0}
+        count={interviews.data?.totalElements ?? 0}
         noun="interview"
       />
     </Card>

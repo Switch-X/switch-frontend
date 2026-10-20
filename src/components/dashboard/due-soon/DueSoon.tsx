@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/layout/Card";
 import { Icon } from "@/components/ui/icons";
 import { useDashboardData } from "@/components/dashboard/context/DashboardDataProvider";
-import { dueThisWeek } from "@/components/dashboard/utils/dueSoon";
+import { dueThisWeek } from "@/components/dashboard/due-soon/dueSoon.utils";
 import { DueSoonItem } from "./DueSoonItem";
 
 /**
@@ -13,8 +13,8 @@ import { DueSoonItem } from "./DueSoonItem";
  * entirely when nothing is due, rather than showing an empty card that says so.
  */
 export function DueSoon() {
-  const { applications, assignments, companyOf } = useDashboardData();
-  const items = dueThisWeek(applications, assignments, companyOf);
+  const { applications, assignments } = useDashboardData();
+  const items = dueThisWeek(applications, assignments);
 
   if (items.length === 0) return null;
 
@@ -27,7 +27,7 @@ export function DueSoon() {
             Needs you this week
           </span>
         }
-        description="Deadlines inside the next seven days, soonest first."
+        description="Anything already late, then anything due in the next seven days."
       />
       <ul className="divide-y divide-border">
         {items.map((item) => (

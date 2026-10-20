@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { AuthMode } from "@/components/landing/types/auth";
+import type { AuthMode } from "@/components/landing/auth/authDialog.types";
 import { useAuthDialog } from "@/components/landing/context/AuthDialogProvider";
 
 /**

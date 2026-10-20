@@ -7,15 +7,15 @@
  * which is what a recruiter cold-call is: a conversation that has not become an application yet.
  * So the placeholder reads "Not linked" rather than "Select one", and leaving it alone is valid.
  *
- * <p>It fetches one page of applications rather than all of them. A hundred-entry native select
- * is already past the point of being usable, and the label carries the company and role so the
- * right row is findable by typing in the open dropdown.
+ * <p>It asks for `options` rather than the applications themselves: an id and a label are all a
+ * dropdown can show, and the full record would mean the database reading eleven columns per row
+ * so that two could be used. The label carries the company and role, so the right one is
+ * findable by typing into the open dropdown.
  */
 
-import { api } from "@/lib/api";
-import { useResource } from "@/lib/hooks";
+import { applicationsApi } from "@/components/applications/applications.api";
+import { useResource } from "@/lib/hooks/useResource";
 import { Select } from "@/components/ui/form/Select";
-import { APPLICATION_LOOKUP_SIZE } from "@/components/shared/constants/applications";
 
 export function ApplicationSelect({
   value,
@@ -28,15 +28,12 @@ export function ApplicationSelect({
   id?: string;
   error?: string;
 }) {
-  const applications = useResource(
-    () => api.applications.list({ size: APPLICATION_LOOKUP_SIZE, sort: "RECENT_ACTIVITY" }),
-    [],
-  );
+  const applications = useResource(() => applicationsApi.options(), []);
 
-  const options = applications.data?.content ?? [];
+  const options = applications.data ?? [];
 
-  // An application that is linked but outside the fetched page would otherwise make the select
-  // fall back to its first option and silently relink the record on the next save.
+  // A linked application that is not in the list - deleted, say - would otherwise make the
+  // select fall back to its first option and silently relink the record on the next save.
   const known = options.some((application) => application.id === value);
 
   return (

@@ -7,24 +7,26 @@
  * textarea, one entry per line, rather than as a row of inputs with an "add another" button -
  * pasting six questions out of a notes app should be one paste, not six clicks.
  *
- * <p>Both round endpoints answer with the whole updated interview, so `onSaved` hands the caller
- * that object and the card it came from can be replaced without refetching the list.
+ * <p>The round endpoints answer with no interview, so the caller reloads the list on `onSaved`.
  */
 
-import { useState, type FormEvent } from "react";
-import { ApiError, api } from "@/lib/api";
+import { useEffect, useRef } from "react";
+import { interviewsApi } from "@/components/interviews/interviews.api";
 import { DIFFICULTY, INTERVIEW_OUTCOME, INTERVIEW_TYPE } from "@/lib/enums";
-import { useFormFields } from "@/lib/hooks";
-import type { InterviewRoundView, InterviewView } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { Modal } from "@/components/ui/Modal";
+import { useFormFields } from "@/lib/hooks/useFormFields";
+import { changedFields } from "@/lib/patch";
+import { prefersReducedMotion } from "@/lib/motion";
+import type { InterviewRoundView, InterviewView } from "@/components/interviews/interviews.types";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { Modal } from "@/components/ui/overlay/Modal";
+import { useSaveForm } from "@/components/shared/hooks/useSaveForm";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { Field } from "@/components/ui/form/Field";
 import { Input } from "@/components/ui/form/Input";
 import { Textarea } from "@/components/ui/form/Textarea";
-import { NEW_ROUND } from "@/components/interviews/constants/interviewForm";
-import { initialRoundForm, toRoundPayload } from "@/components/interviews/utils/roundForm";
+import { NEW_ROUND } from "@/components/interviews/form/interviewForm.constants";
+import { initialRoundForm, toRoundPayload } from "@/components/interviews/round-form/roundForm.utils";
 
 export function RoundForm({
   open,
@@ -37,37 +39,51 @@ export function RoundForm({
   interview: InterviewView;
   editing: InterviewRoundView | null;
   onClose: () => void;
-  onSaved: (updated: InterviewView, message: string) => void;
+  onSaved: (message: string) => void;
 }) {
   const [form, set] = useFormFields(() => initialRoundForm(editing));
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setFieldErrors({});
-    setBusy(true);
+  // Picking "Rejected" reveals a field that is usually below the fold, so the form was quietly
+  // asking a question nobody saw. Bringing it to the reader is the fix - telling them to scroll
+  // would be the form explaining its own layout problem.
+  const reasonsRef = useRef<HTMLDivElement>(null);
+  const previousOutcome = useRef(form.interviewOutcome);
 
-    const payload = toRoundPayload(form);
+  useEffect(() => {
+    const wasRejected = previousOutcome.current === "REJECTED";
+    previousOutcome.current = form.interviewOutcome;
 
-    try {
-      const updated = editing
-        ? await api.interviews.updateRound(interview.id, editing.roundId, payload)
-        : await api.interviews.addRound(interview.id, payload);
-      onSaved(updated, editing ? "Round updated" : "Round added");
-      onClose();
-    } catch (failure) {
-      if (failure instanceof ApiError) {
-        setFieldErrors(failure.fieldErrors);
-        setError(failure.message);
-      } else {
-        setError("Could not reach SWITCH. This round was not saved.");
-      }
-      setBusy(false);
-    }
-  }
+    // Only on the change into it. Opening a round that is already rejected should leave the
+    // reader where they are rather than throwing them down the form.
+    if (wasRejected || form.interviewOutcome !== "REJECTED") return;
+
+    const field = reasonsRef.current;
+    if (!field) return;
+
+    field.scrollIntoView({
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+      block: "center",
+    });
+    // `preventScroll`, or the browser jumps to the field and cancels the glide it is mid-way
+    // through - the reader sees the end of the journey without the journey.
+    field.querySelector("textarea")?.focus({ preventScroll: true });
+  }, [form.interviewOutcome]);
+
+  const { busy, error, fieldErrors, submit } = useSaveForm({
+    save: () => {
+      const payload = toRoundPayload(form);
+      if (!editing) return interviewsApi.addRound(interview.id, payload);
+      return interviewsApi.updateRound(
+        interview.id,
+        editing.roundId,
+        changedFields(toRoundPayload(initialRoundForm(editing)), payload),
+      );
+    },
+    saved: editing ? "Round updated" : "Round added",
+    offline: "Could not reach SWITCH. This round was not saved.",
+    onSaved,
+    onClose,
+  });
 
   return (
     <Modal
@@ -203,6 +219,7 @@ export function RoundForm({
             box nobody fills in. Hiding it is safe because the text lives in this form's state,
             not the field's, so flipping the outcome away and back brings it back untouched. */}
         {form.interviewOutcome === "REJECTED" && (
+          <div ref={reasonsRef} className="animate-attention rounded-lg">
           <Field
             label="Why it did not go through"
             htmlFor="round-reasons"
@@ -217,6 +234,7 @@ export function RoundForm({
               onChange={(event) => set("rejectionReasons", event.target.value)}
             />
           </Field>
+          </div>
         )}
 
         <Field label="Your own notes" htmlFor="round-remarks" error={fieldErrors.remarks}>

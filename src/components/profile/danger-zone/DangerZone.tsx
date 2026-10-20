@@ -1,4 +1,4 @@
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/layout/Card";
 import { DeleteAccountControls } from "./DeleteAccountControls";
 
 export function DangerZone() {

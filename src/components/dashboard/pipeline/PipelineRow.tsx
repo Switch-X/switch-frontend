@@ -1,7 +1,7 @@
 import { APPLICATION_STATUS, describe } from "@/lib/enums";
-import type { ApplicationStatus } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
-import { barWidth } from "@/components/dashboard/utils/pipeline";
+import type { ApplicationStatus } from "@/components/applications/applications.types";
+import { Badge } from "@/components/ui/display/Badge";
+import { barWidth } from "@/components/dashboard/pipeline/pipeline.utils";
 
 export function PipelineRow({
   status,

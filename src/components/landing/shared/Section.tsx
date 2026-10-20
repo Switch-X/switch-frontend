@@ -7,12 +7,15 @@ export function Section({
   id,
   eyebrow,
   title,
+  intro,
   children,
   tinted,
 }: {
   id?: string;
   eyebrow?: string;
   title?: string;
+  /** The paragraph under the heading. Sections without one get the same gap anyway. */
+  intro?: ReactNode;
   children: ReactNode;
   tinted?: boolean;
 }) {
@@ -28,7 +31,7 @@ export function Section({
     >
       <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
         {(eyebrow || title) && (
-          <Reveal className="mb-4 text-center">
+          <Reveal className={cx("text-center", intro ? "mb-4" : "mb-10")}>
             {eyebrow && (
               <p className="text-xs font-semibold tracking-[0.16em] text-brand uppercase">
                 {eyebrow}
@@ -40,6 +43,11 @@ export function Section({
               </h2>
             )}
           </Reveal>
+        )}
+        {intro && (
+          <p className="mx-auto mb-10 max-w-2xl text-center text-lg leading-relaxed text-ink-muted">
+            {intro}
+          </p>
         )}
         {children}
       </div>

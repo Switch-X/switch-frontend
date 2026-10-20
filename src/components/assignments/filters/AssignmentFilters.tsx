@@ -1,7 +1,7 @@
 "use client";
 
 import { ASSIGNMENT_OUTCOME, DIFFICULTY, SUBMISSION } from "@/lib/enums";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button/Button";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { CheckboxFilter } from "@/components/shared/filters/CheckboxFilter";
 import { FilterBar } from "@/components/shared/filters/FilterBar";
@@ -55,7 +55,7 @@ export function AssignmentFilters() {
 
       <ResultCount
         loading={assignments.loading}
-        count={assignments.data?.length ?? 0}
+        count={assignments.data?.totalElements ?? 0}
         noun="assignment"
       />
     </FilterBar>

@@ -3,14 +3,13 @@
 /**
  * Sign in, or create the profile to sign in with.
  *
- * <p>Worth being plain about what "sign in" means here, because the screen would otherwise imply
- * something the backend does not do. `HeaderCurrentUser` reads `X-User-Id` off the request and
- * trusts it; there is no password to check and no token to verify. So this is an account
- * chooser, and painting a password box on it would be a lie that also teaches the wrong habit.
+ * <p>Both tabs end the same way: with an access token from Keycloak, which `session.tsx` keeps
+ * and every later call carries. Signing in really is signing in - the password is checked by
+ * Keycloak and the token is verified by the backend on every request.
  */
 
 import { useEffect, useState } from "react";
-import type { AuthMode } from "@/components/landing/types/auth";
+import type { AuthMode } from "@/components/landing/auth/authDialog.types";
 import { AuthTabs } from "./AuthTabs";
 import { SignInPanel } from "./sign-in/SignInPanel";
 import { SignUpPanel } from "./sign-up/SignUpPanel";

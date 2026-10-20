@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/ui/icons";
-import { useLocalClock } from "@/components/landing/hooks/useLocalClock";
+import { useLocalClock } from "@/components/landing/footer/useLocalClock";
 
 /**
  * The reader's own time, at the very end of the page.

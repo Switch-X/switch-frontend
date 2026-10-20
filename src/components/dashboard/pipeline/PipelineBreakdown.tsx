@@ -1,10 +1,10 @@
 "use client";
 
-import { EmptyState } from "@/components/ui/EmptyState";
-import { SkeletonList } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/feedback/EmptyState";
+import { SkeletonList } from "@/components/ui/feedback/Skeleton";
 import { Icon } from "@/components/ui/icons";
 import { useDashboardData } from "@/components/dashboard/context/DashboardDataProvider";
-import { statusBreakdown } from "@/components/dashboard/utils/pipeline";
+import { statusBreakdown } from "@/components/dashboard/pipeline/pipeline.utils";
 import { PipelineRow } from "./PipelineRow";
 
 export function PipelineBreakdown() {

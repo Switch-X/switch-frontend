@@ -4,26 +4,32 @@
  * The four lists the overview is built from, loaded once and shared by every block on it.
  *
  * <p>Everything on the dashboard is derived from the same four list calls the other pages make,
- * rather than from a summary endpoint, because the backend does not have one. That is fine at
- * this size: the applications call is capped at one page and the rest are small. If the totals
- * ever need to be exact past that cap, it wants an endpoint rather than a bigger page.
+ * rather than from a summary endpoint, because the backend does not have one.
+ *
+ * <p>All four are paged, and all four are asked for one deliberately large page rather than the
+ * ten a list screen shows - the blocks here count rows, bucket them by status and work out what
+ * is due, so a page of ten would quietly answer those questions about ten records. `totalElements`
+ * is the server's own count and keeps going past the cap, which is why the counts that have to be
+ * right read that rather than `content.length`. If the rest ever need to be exact past the cap,
+ * that wants a summary endpoint rather than a bigger page.
  *
  * <p>The page itself is a server component; this is the one piece of it that holds state, so the
  * blocks that show the account's data read it from here rather than each fetching their own.
  */
 
+import { screeningCallsApi } from "@/components/screening-calls/screeningCalls.api";
+import { interviewsApi } from "@/components/interviews/interviews.api";
+import { assignmentsApi } from "@/components/assignments/assignments.api";
+import { applicationsApi } from "@/components/applications/applications.api";
 import { createContext, useContext, type ReactNode } from "react";
-import { api } from "@/lib/api";
-import { useResource } from "@/lib/hooks";
-import type {
-  ApplicationView,
-  AssignmentView,
-  InterviewView,
-  ScreeningCallView,
-} from "@/lib/types";
-import { APPLICATION_LOOKUP_SIZE } from "@/components/shared/constants/applications";
-import { companyNameMap } from "@/components/shared/utils/companyNames";
-import { isUpcoming } from "@/components/shared/utils/interviews";
+
+import { useResource } from "@/lib/hooks/useResource";
+import type { ApplicationView } from "@/components/applications/applications.types";
+import type { AssignmentView } from "@/components/assignments/assignments.types";
+import type { InterviewView } from "@/components/interviews/interviews.types";
+import type { ScreeningCallView } from "@/components/screening-calls/screeningCalls.types";
+import { OVERVIEW_PAGE_SIZE } from "@/components/dashboard/overview.constants";
+import { bySoonest, isUpcoming } from "@/components/shared/utils/interviews";
 
 type DashboardData = {
   loading: boolean;
@@ -36,28 +42,29 @@ type DashboardData = {
   assignments: AssignmentView[];
   screeningCalls: ScreeningCallView[];
   /**
-   * Interviews dated today or later. The backend already sorted them upcoming-first against the
-   * account's own timezone, so this only filters rather than sorting again.
+   * Interviews dated today or later, the soonest first.
+   *
+   * <p>Sorted here, and it has to be: the interviews endpoint sends the most recent first, which
+   * is the right order for a log of what has happened and the wrong one for a list of what is
+   * coming - it would lead with the interview furthest away. Sorting a page in the browser is
+   * only safe because this block is a view of one capped page rather than a pager of its own.
    */
   upcoming: InterviewView[];
-  /** Interviews and assignments carry only `applicationId`; this names them. */
-  companyOf: Map<number, string>;
-  reloadAll: () => void;
 };
 
 const DashboardDataContext = createContext<DashboardData | null>(null);
 
 export function DashboardDataProvider({ children }: { children: ReactNode }) {
   const applications = useResource(
-    () => api.applications.list({ size: APPLICATION_LOOKUP_SIZE }),
+    () => applicationsApi.list({ size: OVERVIEW_PAGE_SIZE }),
     [],
   );
-  const interviews = useResource(() => api.interviews.list(), []);
-  const assignments = useResource(() => api.assignments.list(), []);
-  const calls = useResource(() => api.screeningCalls.list(), []);
+  const interviews = useResource(() => interviewsApi.list({ size: OVERVIEW_PAGE_SIZE }), []);
+  const assignments = useResource(() => assignmentsApi.list({ size: OVERVIEW_PAGE_SIZE }), []);
+  const calls = useResource(() => screeningCallsApi.list({ size: OVERVIEW_PAGE_SIZE }), []);
 
   const allApplications = applications.data?.content ?? [];
-  const allInterviews = interviews.data ?? [];
+  const allInterviews = interviews.data?.content ?? [];
 
   const value: DashboardData = {
     loading: applications.loading || interviews.loading || assignments.loading || calls.loading,
@@ -65,16 +72,9 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     applications: allApplications,
     totalApplications: applications.data?.totalElements ?? 0,
     interviews: allInterviews,
-    assignments: assignments.data ?? [],
-    screeningCalls: calls.data ?? [],
-    upcoming: allInterviews.filter(isUpcoming),
-    companyOf: companyNameMap(allApplications),
-    reloadAll: () => {
-      applications.reload();
-      interviews.reload();
-      assignments.reload();
-      calls.reload();
-    },
+    assignments: assignments.data?.content ?? [],
+    screeningCalls: calls.data?.content ?? [],
+    upcoming: allInterviews.filter(isUpcoming).sort(bySoonest),
   };
 
   return <DashboardDataContext.Provider value={value}>{children}</DashboardDataContext.Provider>;

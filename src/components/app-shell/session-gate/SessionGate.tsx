@@ -14,7 +14,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/session";
-import { FullPageSpinner } from "@/components/ui/FullPageSpinner";
+import { FullPageSpinner } from "@/components/ui/feedback/FullPageSpinner";
 import { NoProfileScreen } from "./NoProfileScreen";
 
 export function SessionGate({ children }: { children: ReactNode }) {

@@ -1,5 +1,5 @@
 import { cx } from "@/lib/cx";
-import { EXAMPLE_ROUNDS } from "@/components/landing/constants/exampleRounds";
+import { EXAMPLE_ROUNDS } from "@/components/landing/exampleRounds.constants";
 
 export function InterviewsPane() {
   return (

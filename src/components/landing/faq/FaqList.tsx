@@ -1,4 +1,4 @@
-import { FAQ_ITEMS } from "@/components/landing/constants/faq";
+import { FAQ_ITEMS } from "@/components/landing/faq/faq.constants";
 import { FaqItem } from "./FaqItem";
 
 /**

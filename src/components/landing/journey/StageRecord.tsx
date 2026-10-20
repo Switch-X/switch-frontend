@@ -1,5 +1,5 @@
 import { cx } from "@/lib/cx";
-import type { JourneyStage } from "@/components/landing/types/journey";
+import type { JourneyStage } from "@/components/landing/journey/journey.types";
 
 /** The record itself, as the app would store it. */
 export function StageRecord({ stage }: { stage: JourneyStage }) {

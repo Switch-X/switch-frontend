@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { CLOCK_PLACES } from "@/components/landing/constants/worldClocks";
+import { CLOCK_PLACES } from "@/components/landing/world-clocks/worldClocks.constants";
 import { ClockCard } from "./ClockCard";
 
 export function WorldClocks() {

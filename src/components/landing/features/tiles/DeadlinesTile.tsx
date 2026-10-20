@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
 import { Icon } from "@/components/ui/icons";
-import { BENTO_DEADLINES } from "@/components/landing/constants/features";
+import { BENTO_DEADLINES } from "@/components/landing/features/features.constants";
 import { TileHeading } from "../TileHeading";
 
 export function DeadlinesTile() {

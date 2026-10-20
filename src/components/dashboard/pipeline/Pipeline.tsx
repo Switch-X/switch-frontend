@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/layout/Card";
 import { PipelineBreakdown } from "./PipelineBreakdown";
 
 /** "Where they stand" - the card renders on the server, the chart inside it on the client. */

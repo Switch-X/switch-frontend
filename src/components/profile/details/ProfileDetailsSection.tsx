@@ -1,4 +1,4 @@
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/layout/Card";
 import { ProfileDetailsForm } from "./ProfileDetailsForm";
 
 export function ProfileDetailsSection() {

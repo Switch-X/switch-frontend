@@ -1,16 +1,17 @@
 "use client";
 
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { SkeletonList } from "@/components/ui/Skeleton";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { SkeletonList } from "@/components/ui/feedback/Skeleton";
 import { Icon } from "@/components/ui/icons";
 import { DataTable } from "@/components/shared/list/DataTable";
 import { FilterableEmptyState } from "@/components/shared/list/FilterableEmptyState";
-import { APPLICATION_COLUMNS } from "@/components/applications/constants/applicationList";
+import { APPLICATION_COLUMNS } from "@/components/applications/applicationList.constants";
 import { useApplications } from "@/components/applications/context/ApplicationsProvider";
 import { ApplicationRow } from "./ApplicationRow";
 
 export function ApplicationsTable() {
-  const { applications, filtered, clearFilters, editor, deletion } = useApplications();
+  const { applications, filtered, clearFilters, editor, deletion, showWorkflow } =
+    useApplications();
   const rows = applications.data?.content ?? [];
 
   if (applications.error) {
@@ -35,19 +36,19 @@ export function ApplicationsTable() {
         createLabel="New application"
         onCreate={editor.create}
         onClearFilters={clearFilters}
-        onSampleDataLoaded={applications.reload}
       />
     );
   }
 
   return (
-    <DataTable columns={APPLICATION_COLUMNS} className="min-w-[820px]">
+    <DataTable columns={APPLICATION_COLUMNS} className="min-w-[920px]">
       {rows.map((application) => (
         <ApplicationRow
           key={application.id}
           application={application}
           onEdit={editor.edit}
           onDelete={deletion.request}
+          onWorkflow={showWorkflow}
         />
       ))}
     </DataTable>

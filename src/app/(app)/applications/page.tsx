@@ -16,8 +16,8 @@ import { ApplicationFilters } from "@/components/applications/filters/Applicatio
 import { NewApplicationButton } from "@/components/applications/header/NewApplicationButton";
 import { ApplicationsPagination } from "@/components/applications/pagination/ApplicationsPagination";
 import { ApplicationsTable } from "@/components/applications/table/ApplicationsTable";
-import { Card } from "@/components/ui/Card";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/layout/Card";
+import { PageHeader } from "@/components/ui/layout/PageHeader";
 
 export default function ApplicationsPage() {
   return (

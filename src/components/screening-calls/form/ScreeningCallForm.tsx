@@ -2,23 +2,26 @@
 
 /** Create or edit a screening call. Building the body from the fields is `toScreeningCallPayload`. */
 
-import { useState, type FormEvent } from "react";
-import { ApiError, api } from "@/lib/api";
+import { screeningCallsApi } from "@/components/screening-calls/screeningCalls.api";
 import { PROCEEDING_VIA, SCREENING_OUTCOME } from "@/lib/enums";
-import { useFormFields } from "@/lib/hooks";
-import type { ScreeningCallView } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { Modal } from "@/components/ui/Modal";
+import { useFormFields } from "@/lib/hooks/useFormFields";
+import { changedFields } from "@/lib/patch";
+import type { ScreeningCallView } from "@/components/screening-calls/screeningCalls.types";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { Modal } from "@/components/ui/overlay/Modal";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { Field } from "@/components/ui/form/Field";
 import { Input } from "@/components/ui/form/Input";
 import { ApplicationSelect } from "@/components/shared/application-select/ApplicationSelect";
-import { NEW_SCREENING_CALL } from "@/components/screening-calls/constants/screeningCallForm";
+import { StandaloneCompanyField } from "@/components/shared/application-select/StandaloneCompanyField";
+import { useSaveForm } from "@/components/shared/hooks/useSaveForm";
+import { savedMessage } from "@/components/shared/utils/interviewNudge";
+import { NEW_SCREENING_CALL } from "@/components/screening-calls/form/screeningCallForm.constants";
 import {
   initialScreeningCallForm,
   toScreeningCallPayload,
-} from "@/components/screening-calls/utils/screeningCallForm";
+} from "@/components/screening-calls/form/screeningCallForm.utils";
 
 export function ScreeningCallForm({
   open,
@@ -32,37 +35,25 @@ export function ScreeningCallForm({
   onSaved: (message: string) => void;
 }) {
   const [form, set] = useFormFields(() => initialScreeningCallForm(editing));
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setFieldErrors({});
-    setBusy(true);
-
-    const payload = toScreeningCallPayload(form);
-
-    try {
-      if (editing) {
-        await api.screeningCalls.update(editing.id, payload);
-        onSaved("Screening call updated");
-      } else {
-        await api.screeningCalls.create(payload);
-        onSaved("Screening call added");
-      }
-      onClose();
-    } catch (failure) {
-      if (failure instanceof ApiError) {
-        setFieldErrors(failure.fieldErrors);
-        setError(failure.message);
-      } else {
-        setError("Could not reach SWITCH. Your screening call was not saved.");
-      }
-      setBusy(false);
-    }
-  }
+  const { busy, error, fieldErrors, submit } = useSaveForm({
+    save: () => {
+      const payload = toScreeningCallPayload(form);
+      if (!editing) return screeningCallsApi.create(payload);
+      return screeningCallsApi.update(
+        editing.id,
+        changedFields(toScreeningCallPayload(initialScreeningCallForm(editing)), payload),
+      );
+    },
+    saved: savedMessage(
+      form.proceeding === "INTERVIEWING",
+      editing?.proceeding === "INTERVIEWING",
+      editing ? "Screening call updated" : "Screening call added",
+    ),
+    offline: "Could not reach SWITCH. Your screening call was not saved.",
+    onSaved,
+    onClose,
+  });
 
   return (
     <Modal
@@ -95,27 +86,24 @@ export function ScreeningCallForm({
           />
         </Field>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Company" htmlFor="screening-company" error={fieldErrors.companyName}>
-            <Input
-              id="screening-company"
-              maxLength={200}
-              value={form.companyName}
-              placeholder="Datadog"
-              onChange={(event) => set("companyName", event.target.value)}
-            />
-          </Field>
+        <StandaloneCompanyField
+          applicationId={form.applicationId}
+          id="screening-company"
+          value={form.companyName}
+          error={fieldErrors.companyName}
+          hint="Who rang. Needed because there is no application to take it from."
+          onChange={(value) => set("companyName", value)}
+        />
 
-          <Field label="Who called" htmlFor="screening-hr" error={fieldErrors.hrName}>
-            <Input
-              id="screening-hr"
-              maxLength={200}
-              value={form.hrName}
-              placeholder="Priya Raman"
-              onChange={(event) => set("hrName", event.target.value)}
-            />
-          </Field>
-        </div>
+        <Field label="Who called" htmlFor="screening-hr" error={fieldErrors.hrName}>
+          <Input
+            id="screening-hr"
+            maxLength={200}
+            value={form.hrName}
+            placeholder="Priya Raman"
+            onChange={(event) => set("hrName", event.target.value)}
+          />
+        </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Contacted on" htmlFor="screening-date" error={fieldErrors.contactedOn}>

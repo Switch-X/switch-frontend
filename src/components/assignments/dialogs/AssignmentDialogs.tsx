@@ -1,7 +1,7 @@
 "use client";
 
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { useToast } from "@/components/ui/Toast";
+import { ConfirmDialog } from "@/components/ui/overlay/ConfirmDialog";
+import { useToast } from "@/components/ui/feedback/Toast";
 import { useAssignments } from "@/components/assignments/context/AssignmentsProvider";
 import { AssignmentForm } from "@/components/assignments/form/AssignmentForm";
 

@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/session";
-import { FullPageSpinner } from "@/components/ui/FullPageSpinner";
+import { FullPageSpinner } from "@/components/ui/feedback/FullPageSpinner";
 
 /**
  * Holds the page back until we know who is looking at it.

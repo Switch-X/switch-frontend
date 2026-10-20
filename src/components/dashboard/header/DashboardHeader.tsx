@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useSession } from "@/lib/session";
-import { buttonClass } from "@/components/ui/Button";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { buttonClass } from "@/components/ui/button/Button";
+import { PageHeader } from "@/components/ui/layout/PageHeader";
 import { Icon } from "@/components/ui/icons";
 import { useDashboardData } from "@/components/dashboard/context/DashboardDataProvider";
-import { useGreeting } from "@/components/dashboard/hooks/useGreeting";
-import { firstNameOf } from "@/components/dashboard/utils/summary";
+import { useGreeting } from "@/components/dashboard/header/useGreeting";
+import { firstNameOf } from "@/components/dashboard/summary.utils";
 
 /** A client component because the greeting depends on who is signed in and their clock. */
 export function DashboardHeader() {

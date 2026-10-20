@@ -9,40 +9,14 @@
  * one place without hunting for colour names in a dozen components.
  */
 
-import type {
-  ApplicationSort,
-  ApplicationStatus,
-  AssignmentOutcome,
-  DifficultyLevel,
-  DigestMode,
-  InterviewOutcome,
-  InterviewType,
-  ProceedingVia,
-  ReferralRequestOutcome,
-  ScreeningOutcome,
-  Source,
-  Submission,
-  WorkingProfile,
-} from "./types";
+import type { ApplicationSort, ApplicationStatus, ReferralRequestOutcome, Source } from "@/components/applications/applications.types";
+import type { AssignmentOutcome, Submission } from "@/components/assignments/assignments.types";
+import type { InterviewOutcome, InterviewType } from "@/components/interviews/interviews.types";
+import type { DigestMode, WorkingProfile } from "@/components/profile/user.types";
+import type { ScreeningOutcome } from "@/components/screening-calls/screeningCalls.types";
+import type { DifficultyLevel, ProceedingVia } from "@/lib/types";
 
 export type Tone = "neutral" | "info" | "good" | "warn" | "bad" | "accent";
-
-export type EnumOption<T extends string> = {
-  value: T;
-  label: string;
-  tone: Tone;
-};
-
-/** Turns the lookup tables below into something a `<Select>` can map over. */
-export function optionsOf<T extends string>(
-  table: Record<T, { label: string; tone: Tone }>,
-): EnumOption<T>[] {
-  return (Object.keys(table) as T[]).map((value) => ({
-    value,
-    label: table[value].label,
-    tone: table[value].tone,
-  }));
-}
 
 /**
  * A value the backend knows about but this table does not still has to render. Falling back to
@@ -56,7 +30,7 @@ export function describe<T extends string>(
   return table[value] ?? { label: titleCase(value), tone: "neutral" };
 }
 
-export function titleCase(raw: string): string {
+function titleCase(raw: string): string {
   return raw
     .toLowerCase()
     .split("_")
@@ -69,8 +43,9 @@ export function titleCase(raw: string): string {
 export const APPLICATION_STATUS: Record<ApplicationStatus, { label: string; tone: Tone }> = {
   NOT_APPLIED_YET: { label: "Not applied yet", tone: "neutral" },
   APPLIED: { label: "Applied", tone: "info" },
+  SCREENING_CALL_RECEIVED: { label: "Screening call", tone: "accent" },
   INTERVIEWING: { label: "Interviewing", tone: "accent" },
-  ASSIGNMENT: { label: "Assignment", tone: "accent" },
+  ASSIGNMENT_RECEIVED: { label: "Take-home received", tone: "accent" },
   HOLD: { label: "On hold", tone: "warn" },
   OFFERED: { label: "Offered", tone: "good" },
   OFFER_REVOKED: { label: "Offer revoked", tone: "bad" },
@@ -79,18 +54,25 @@ export const APPLICATION_STATUS: Record<ApplicationStatus, { label: string; tone
   WITHDRAWN: { label: "Withdrawn", tone: "neutral" },
 };
 
+/**
+ * Where the job was found. `REFERRAL` here means a person told you about it - which is a
+ * different thing from asking them to refer you, tracked separately in `REFERRAL` below. Labelled
+ * "Someone I know" so the two never read as the same column.
+ */
 export const SOURCE: Record<Source, { label: string; tone: Tone }> = {
   LINKEDIN: { label: "LinkedIn", tone: "info" },
   CAREER_PORTAL: { label: "Career portal", tone: "info" },
   COLD_EMAIL: { label: "Cold email", tone: "neutral" },
-  REFERRAL: { label: "Referral", tone: "good" },
+  REFERRAL: { label: "Someone I know", tone: "info" },
   OTHERS: { label: "Other", tone: "neutral" },
 };
 
+/** Whether you asked someone at the company to refer you, and how that went. */
 export const REFERRAL: Record<ReferralRequestOutcome, { label: string; tone: Tone }> = {
   REQUESTED: { label: "Requested", tone: "warn" },
   RECEIVED: { label: "Received", tone: "good" },
-  SKIPPED: { label: "Skipped", tone: "neutral" },
+  REFUSED: { label: "Refused", tone: "bad" },
+  SKIPPED: { label: "Not asked", tone: "neutral" },
 };
 
 export const APPLICATION_SORT: Record<ApplicationSort, { label: string; tone: Tone }> = {

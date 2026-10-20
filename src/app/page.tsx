@@ -3,7 +3,7 @@
  *
  * <p>A server component, and almost all of this page is copy and layout that renders here and
  * ships no JavaScript. The pieces that need the browser are islands inside their own sections
- * under `components/landing/` - the header's scroll state, the demo sign-in, the preview and
+ * under `components/landing/` - the header's scroll state, the sign-in dialog, the preview and
  * journey timers, the live clocks, the counters and spotlights, and the auth dialog.
  *
  * <p>Anyone already holding a session is sent straight to the dashboard by `LandingGate` rather
@@ -22,10 +22,11 @@ import { Footer } from "@/components/landing/footer/Footer";
 import { LandingHeader } from "@/components/landing/header/LandingHeader";
 import { Hero } from "@/components/landing/hero/Hero";
 import { JourneySection } from "@/components/landing/journey/JourneySection";
+import { WorkflowSection } from "@/components/landing/workflow/WorkflowSection";
 import { Marquee } from "@/components/landing/marquee/Marquee";
 import { LandingGate } from "@/components/landing/shared/LandingGate";
 import { RevealReady } from "@/components/landing/shared/RevealReady";
-import { StatsSection } from "@/components/landing/stats/StatsSection";
+import { NeedsYouSection } from "@/components/landing/needs-you/NeedsYouSection";
 import { TimezonesSection } from "@/components/landing/world-clocks/TimezonesSection";
 
 export default function LandingPage() {
@@ -39,8 +40,9 @@ export default function LandingPage() {
             <LandingHeader />
             <Hero />
             <Marquee />
-            <StatsSection />
+            <NeedsYouSection />
             <JourneySection />
+            <WorkflowSection />
             <TimezonesSection />
             <FeaturesSection />
             <FaqSection />

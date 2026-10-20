@@ -1,4 +1,4 @@
-import type { DigestMode, QuietHoursDto, WorkingProfile } from "@/lib/types";
+import type { DigestMode, QuietHoursDto, WorkingProfile } from "@/components/profile/user.types";
 
 /**
  * Where a profile starts before anyone touches the settings.
@@ -7,7 +7,7 @@ import type { DigestMode, QuietHoursDto, WorkingProfile } from "@/lib/types";
  * same answers for a profile saved without them - so the two can never disagree about a default.
  */
 
-export const DEFAULT_WORKING_PROFILE: WorkingProfile = "PROFESSIONAL";
+export const DEFAULT_WORKING_PROFILE: WorkingProfile = "FRESHER";
 
 /** Only the starting value: sign-up replaces it with the browser's own zone as soon as it can. */
 export const DEFAULT_TIMEZONE = "UTC";

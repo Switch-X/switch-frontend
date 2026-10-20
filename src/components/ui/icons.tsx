@@ -6,7 +6,7 @@
  * inherit `currentColor` from whatever is around them.
  */
 
-export type IconProps = { className?: string };
+type IconProps = { className?: string };
 
 /** Any one of the glyphs below - for data that carries its icon, like the navigation list. */
 export type IconComponent = (props: IconProps) => React.JSX.Element;

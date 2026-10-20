@@ -1,4 +1,4 @@
-import { MARQUEE_ITEMS } from "@/components/landing/constants/marquee";
+import { MARQUEE_ITEMS } from "@/components/landing/marquee/marquee.constants";
 
 /**
  * A slow ticker of the things this actually tracks.

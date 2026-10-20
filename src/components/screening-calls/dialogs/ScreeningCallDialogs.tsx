@@ -1,7 +1,7 @@
 "use client";
 
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { useToast } from "@/components/ui/Toast";
+import { ConfirmDialog } from "@/components/ui/overlay/ConfirmDialog";
+import { useToast } from "@/components/ui/feedback/Toast";
 import { useScreeningCalls } from "@/components/screening-calls/context/ScreeningCallsProvider";
 import { ScreeningCallForm } from "@/components/screening-calls/form/ScreeningCallForm";
 

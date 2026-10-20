@@ -1,6 +1,6 @@
 import type { SelectHTMLAttributes } from "react";
 import { cx } from "@/lib/cx";
-import { controlClass } from "./controlClass";
+import { controlClass } from "./control.styles";
 
 export function Select({
   error,

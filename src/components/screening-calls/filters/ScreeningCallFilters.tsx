@@ -1,7 +1,7 @@
 "use client";
 
 import { PROCEEDING_VIA, SCREENING_OUTCOME } from "@/lib/enums";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button/Button";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { CheckboxFilter } from "@/components/shared/filters/CheckboxFilter";
 import { FilterBar } from "@/components/shared/filters/FilterBar";
@@ -44,7 +44,7 @@ export function ScreeningCallFilters() {
         </Button>
       )}
 
-      <ResultCount loading={calls.loading} count={calls.data?.length ?? 0} noun="call" />
+      <ResultCount loading={calls.loading} count={calls.data?.totalElements ?? 0} noun="call" />
     </FilterBar>
   );
 }

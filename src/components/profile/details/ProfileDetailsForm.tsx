@@ -1,28 +1,30 @@
 "use client";
 
 /**
- * Name, stage, skills and employment history - everything `PUT /v1/users/me` replaces.
+ * Name, stage, skills and employment history - everything `PATCH /v1/users/me` changes.
  *
  * <p>Saved on its own, apart from the reminders, because the backend splits them: this endpoint
- * replaces the profile and refuses to carry preferences, while the preferences endpoint merges.
+ * changes the profile and refuses to carry preferences, while the preferences endpoint has its own.
  * One form with one button would mean firing two requests and having to explain a half-failure.
  */
 
+import { usersApi } from "@/components/profile/user.api";
 import { useState, type FormEvent } from "react";
-import { ApiError, api } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { WORKING_PROFILE } from "@/lib/enums";
-import { useFormFields } from "@/lib/hooks";
+import { useFormFields } from "@/lib/hooks/useFormFields";
+import { changedFields } from "@/lib/patch";
 import { useSession } from "@/lib/session";
-import type { ExperiencedProfileDto, UserView } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { useToast } from "@/components/ui/Toast";
+import type { ExperiencedProfileDto, UserView } from "@/components/profile/user.types";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { useToast } from "@/components/ui/feedback/Toast";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { Field } from "@/components/ui/form/Field";
 import { Input } from "@/components/ui/form/Input";
 import { DEFAULT_WORKING_PROFILE } from "@/components/shared/constants/profileDefaults";
-import { EMPTY_ROLE } from "@/components/profile/constants/employment";
-import { initialDetailsForm, toProfileUpdate } from "@/components/profile/utils/detailsForm";
+import { EMPTY_ROLE } from "@/components/profile/details/employment.constants";
+import { initialDetailsForm, toProfileUpdate } from "@/components/profile/details/detailsForm.utils";
 import { EmploymentHistory } from "./EmploymentHistory";
 
 export function ProfileDetailsForm() {
@@ -52,7 +54,12 @@ function DetailsForm({ user }: { user: UserView }) {
     setBusy(true);
 
     try {
-      await api.users.update(toProfileUpdate(form, history));
+      await usersApi.update(
+        changedFields(
+          toProfileUpdate(initialDetailsForm(user), user.experiencedProfile ?? []),
+          toProfileUpdate(form, history),
+        ),
+      );
       await refresh();
       toast("Profile saved");
     } catch (failure) {

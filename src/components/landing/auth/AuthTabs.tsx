@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
-import { AUTH_TABS } from "@/components/landing/constants/auth";
-import type { AuthMode } from "@/components/landing/types/auth";
+import { AUTH_TABS } from "@/components/landing/auth/authDialog.constants";
+import type { AuthMode } from "@/components/landing/auth/authDialog.types";
 
 export function AuthTabs({
   active,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cx } from "@/lib/cx";
-import { NAV_ITEMS } from "@/components/app-shell/constants/navigation";
+import { NAV_ITEMS } from "@/components/app-shell/sidebar/navigation.constants";
 
 /** A client component only because the highlighted row follows the current path. */
 export function SidebarNav() {

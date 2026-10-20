@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
 import { Icon } from "@/components/ui/icons";
-import { EXAMPLE_ROUNDS } from "@/components/landing/constants/exampleRounds";
+import { EXAMPLE_ROUNDS } from "@/components/landing/exampleRounds.constants";
 import { TileHeading } from "../TileHeading";
 
 export function RoundsTile() {

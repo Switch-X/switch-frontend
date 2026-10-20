@@ -1,5 +1,5 @@
 import { cx } from "@/lib/cx";
-import { HEADER_LINKS } from "@/components/landing/constants/header";
+import { HEADER_LINKS } from "@/components/landing/header/header.constants";
 
 export function HeaderNav({ scrolled }: { scrolled: boolean }) {
   return (

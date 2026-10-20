@@ -1,11 +1,11 @@
 import { ASSIGNMENT_OUTCOME, DIFFICULTY, SUBMISSION, describe } from "@/lib/enums";
 import { daysUntil, formatDateShort } from "@/lib/format";
-import type { AssignmentView } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
+import type { AssignmentView } from "@/components/assignments/assignments.types";
+import { Badge } from "@/components/ui/display/Badge";
 import { DataTableRow } from "@/components/shared/list/DataTable";
 import { DueDate } from "@/components/shared/list/DueDate";
 import { RowActions } from "@/components/shared/list/RowActions";
-import { dueTone } from "@/components/assignments/utils/assignmentList";
+import { dueTone } from "@/components/assignments/assignmentList.utils";
 
 export function AssignmentRow({
   assignment,

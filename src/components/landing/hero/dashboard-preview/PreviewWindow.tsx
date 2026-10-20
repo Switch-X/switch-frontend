@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { PREVIEW_CYCLE_MS, PREVIEW_VIEWS } from "@/components/landing/constants/dashboardPreview";
-import { useAutoAdvance } from "@/components/landing/hooks/useAutoAdvance";
+import { PREVIEW_CYCLE_MS, PREVIEW_VIEWS } from "@/components/landing/hero/dashboard-preview/dashboardPreview.constants";
+import { useAutoAdvance } from "@/components/landing/useAutoAdvance";
 import { PreviewProgress } from "./PreviewProgress";
 import { PreviewSidebar } from "./PreviewSidebar";
 
@@ -17,15 +17,17 @@ export function PreviewWindow({
   overview,
   applications,
   interviews,
+  workflows,
 }: {
   overview: ReactNode;
   applications: ReactNode;
   interviews: ReactNode;
+  workflows: ReactNode;
 }) {
   const [paused, setPaused] = useState(false);
   const [view] = useAutoAdvance(PREVIEW_VIEWS.length, PREVIEW_CYCLE_MS, paused);
   // In `PREVIEW_VIEWS` order.
-  const panes = [overview, applications, interviews];
+  const panes = [overview, applications, interviews, workflows];
 
   return (
     <div

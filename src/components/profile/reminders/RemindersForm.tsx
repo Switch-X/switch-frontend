@@ -9,16 +9,18 @@
  * dropdowns.
  */
 
+import { usersApi } from "@/components/profile/user.api";
 import { useState, type FormEvent } from "react";
-import { ApiError, api } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { DIGEST_MODE } from "@/lib/enums";
-import { useFormFields } from "@/lib/hooks";
+import { useFormFields } from "@/lib/hooks/useFormFields";
+import { changedFields } from "@/lib/patch";
 import { useSession } from "@/lib/session";
 import { detectTimeZone, timezoneChoices } from "@/lib/timezone";
-import type { NotificationPreferencesDto } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { ErrorNote } from "@/components/ui/ErrorNote";
-import { useToast } from "@/components/ui/Toast";
+import type { NotificationPreferencesDto } from "@/components/profile/user.types";
+import { Button } from "@/components/ui/button/Button";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
+import { useToast } from "@/components/ui/feedback/Toast";
 import { Checkbox } from "@/components/ui/form/Checkbox";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { Field } from "@/components/ui/form/Field";
@@ -28,7 +30,7 @@ import { DEFAULT_DIGEST_MODE } from "@/components/shared/constants/profileDefaul
 import {
   initialRemindersForm,
   toPreferencesPayload,
-} from "@/components/profile/utils/remindersForm";
+} from "@/components/profile/reminders/remindersForm.utils";
 import { TimezoneMismatchNotice } from "./TimezoneMismatchNotice";
 
 export function RemindersForm() {
@@ -57,7 +59,12 @@ function PreferencesForm({ preferences }: { preferences: NotificationPreferences
     setBusy(true);
 
     try {
-      await api.users.updatePreferences(toPreferencesPayload(form));
+      await usersApi.updatePreferences(
+        changedFields(
+          toPreferencesPayload(initialRemindersForm(preferences)),
+          toPreferencesPayload(form),
+        ),
+      );
       await refresh();
       toast("Preferences saved");
     } catch (failure) {

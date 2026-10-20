@@ -10,8 +10,8 @@
  */
 
 import { cx } from "@/lib/cx";
-import { HEADER_SOLID_AFTER_PX } from "@/components/landing/constants/header";
-import { useScrolled } from "@/components/landing/hooks/useScrolled";
+import { HEADER_SOLID_AFTER_PX } from "@/components/landing/header/header.constants";
+import { useScrolled } from "@/components/landing/header/useScrolled";
 import { HeaderActions } from "./HeaderActions";
 import { HeaderBrand } from "./HeaderBrand";
 import { HeaderNav } from "./HeaderNav";

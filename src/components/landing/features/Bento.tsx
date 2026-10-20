@@ -13,7 +13,6 @@ import { BentoTile } from "./BentoTile";
 import { DeadlinesTile } from "./tiles/DeadlinesTile";
 import { QuietHoursTile } from "./tiles/QuietHoursTile";
 import { RoundsTile } from "./tiles/RoundsTile";
-import { SampleDataTile } from "./tiles/SampleDataTile";
 import { StandaloneTile } from "./tiles/StandaloneTile";
 import { StatusesTile } from "./tiles/StatusesTile";
 
@@ -38,12 +37,9 @@ export function Bento() {
         <StatusesTile />
       </BentoTile>
 
-      <BentoTile>
+      {/* Full width: the last row would otherwise be one narrow tile beside two empty columns. */}
+      <BentoTile delay={40} className="md:col-span-3">
         <StandaloneTile />
-      </BentoTile>
-
-      <BentoTile delay={40} className="md:col-span-2">
-        <SampleDataTile />
       </BentoTile>
     </div>
   );

@@ -8,6 +8,7 @@
  * table, pager and dialogs are separate client islands under it, and this is how they talk.
  */
 
+import { applicationsApi } from "@/components/applications/applications.api";
 import {
   createContext,
   useContext,
@@ -16,20 +17,23 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
-import { api } from "@/lib/api";
-import { useEditor, useResource, type Editor, type Resource } from "@/lib/hooks";
-import type { ApplicationSort, ApplicationView, PagedResult } from "@/lib/types";
+
+import { type Editor, useEditor } from "@/lib/hooks/useEditor";
+import { type Resource, useResource } from "@/lib/hooks/useResource";
+import type { ApplicationSort, ApplicationView } from "@/components/applications/applications.types";
+import type { PagedResult } from "@/lib/types";
 import {
   useDeleteConfirmation,
   type DeleteConfirmation,
 } from "@/components/shared/hooks/useDeleteConfirmation";
 import { useListFilters, type ListFilters } from "@/components/shared/hooks/useListFilters";
+import { usePageGuard } from "@/components/shared/hooks/usePageGuard";
 import {
   DEFAULT_SORT,
   INITIAL_FILTERS,
-  PAGE_SIZE,
-} from "@/components/applications/constants/applicationList";
-import type { ApplicationFilterState } from "@/components/applications/types/applicationList";
+} from "@/components/applications/applicationList.constants";
+import { PAGE_SIZE } from "@/components/shared/constants/paging";
+import type { ApplicationFilterState } from "@/components/applications/applicationList.types";
 
 type ApplicationsValue = ListFilters<ApplicationFilterState> & {
   sort: ApplicationSort;
@@ -37,6 +41,10 @@ type ApplicationsValue = ListFilters<ApplicationFilterState> & {
   setPage: Dispatch<SetStateAction<number>>;
   applications: Resource<PagedResult<ApplicationView>>;
   editor: Editor<ApplicationView>;
+  /** The application whose walkthrough is open, or null while none is. */
+  workflowFor: ApplicationView | null;
+  showWorkflow: (application: ApplicationView) => void;
+  closeWorkflow: () => void;
   deletion: DeleteConfirmation<ApplicationView>;
 };
 
@@ -51,14 +59,18 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
   const filters = useListFilters(INITIAL_FILTERS, () => setPage(0));
 
   const applications = useResource(
-    () => api.applications.list({ ...filters.filters, sort, page, size: PAGE_SIZE }),
+    () => applicationsApi.list({ ...filters.filters, sort, page, size: PAGE_SIZE }),
     [...Object.values(filters.filters), sort, page],
   );
 
+  // Deleting the last row on the last page leaves this asking for a page that has gone.
+  usePageGuard(applications.data, setPage);
+
   const editor = useEditor<ApplicationView>();
+  const [workflowFor, setWorkflowFor] = useState<ApplicationView | null>(null);
 
   const deletion = useDeleteConfirmation<ApplicationView>({
-    remove: (application) => api.applications.remove(application.id),
+    remove: (application) => applicationsApi.remove(application.id),
     deleted: "Application deleted",
     failed: "Could not delete that application",
     onDeleted: applications.reload,
@@ -76,6 +88,9 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
     setPage,
     applications,
     editor,
+    workflowFor,
+    showWorkflow: setWorkflowFor,
+    closeWorkflow: () => setWorkflowFor(null),
     deletion,
   };
 

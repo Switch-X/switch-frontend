@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { SessionProvider } from "@/lib/session";
-import { ToastProvider } from "@/components/ui/Toast";
+import { ToastProvider } from "@/components/ui/feedback/Toast";
 import "./globals.css";
 
 /**

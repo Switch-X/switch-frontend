@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ErrorNote } from "@/components/ui/ErrorNote";
+import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
 import { useDashboardData } from "@/components/dashboard/context/DashboardDataProvider";
 
 /**

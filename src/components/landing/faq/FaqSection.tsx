@@ -4,7 +4,6 @@ import { FaqList } from "./FaqList";
 export function FaqSection() {
   return (
     <Section id="faq" eyebrow="Questions" title="The things you are probably wondering">
-      <div className="mb-10" />
       <FaqList />
     </Section>
   );

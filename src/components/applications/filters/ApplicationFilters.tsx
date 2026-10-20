@@ -1,12 +1,12 @@
 "use client";
 
 import { APPLICATION_SORT, APPLICATION_STATUS, REFERRAL, SOURCE } from "@/lib/enums";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button/Button";
 import { EnumSelect } from "@/components/ui/form/EnumSelect";
 import { FilterBar } from "@/components/shared/filters/FilterBar";
 import { FilterField } from "@/components/shared/filters/FilterField";
 import { ResultCount } from "@/components/shared/filters/ResultCount";
-import { DEFAULT_SORT } from "@/components/applications/constants/applicationList";
+import { DEFAULT_SORT } from "@/components/applications/applicationList.constants";
 import { useApplications } from "@/components/applications/context/ApplicationsProvider";
 
 export function ApplicationFilters() {

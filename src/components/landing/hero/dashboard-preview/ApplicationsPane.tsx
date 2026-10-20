@@ -2,7 +2,7 @@ import { cx } from "@/lib/cx";
 import {
   PREVIEW_APPLICATIONS,
   PREVIEW_FILTERS,
-} from "@/components/landing/constants/dashboardPreview";
+} from "@/components/landing/hero/dashboard-preview/dashboardPreview.constants";
 
 export function ApplicationsPane() {
   return (

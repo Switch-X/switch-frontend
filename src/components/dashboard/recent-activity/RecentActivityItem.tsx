@@ -1,6 +1,6 @@
 import { APPLICATION_STATUS, describe } from "@/lib/enums";
-import type { ApplicationView } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
+import type { ApplicationView } from "@/components/applications/applications.types";
+import { Badge } from "@/components/ui/display/Badge";
 import { Icon } from "@/components/ui/icons";
 
 export function RecentActivityItem({ application }: { application: ApplicationView }) {

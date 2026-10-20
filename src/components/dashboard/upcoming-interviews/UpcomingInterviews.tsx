@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/layout/Card";
 import { UpcomingInterviewList } from "./UpcomingInterviewList";
 
 /** The card and its heading render on the server; only the list inside needs the account. */

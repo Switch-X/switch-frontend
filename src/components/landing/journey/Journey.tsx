@@ -13,8 +13,8 @@
  */
 
 import { useState } from "react";
-import { JOURNEY_STAGES, STAGE_DWELL_MS } from "@/components/landing/constants/journey";
-import { useAutoAdvance } from "@/components/landing/hooks/useAutoAdvance";
+import { JOURNEY_STAGES, STAGE_DWELL_MS } from "@/components/landing/journey/journey.constants";
+import { useAutoAdvance } from "@/components/landing/useAutoAdvance";
 import { StageRecord } from "./StageRecord";
 import { StageSummary } from "./StageSummary";
 import { StageTabs } from "./StageTabs";

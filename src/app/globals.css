@@ -242,6 +242,108 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   }
 }
 
+/* The trail on the landing page: a node lands, then the line to the next one draws itself. */
+@keyframes trail-node {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes trail-line {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* The vertical rail on narrow screens, where the line runs down instead of across. */
+@keyframes trail-line-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* A point of light that runs ahead of the line being drawn, so the path reads as travelling
+   from one step to the next rather than simply getting longer. */
+@keyframes trail-spark {
+  from {
+    left: 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  to {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes trail-spark-y {
+  from {
+    top: 0;
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  to {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes trail-label {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* A field that has just appeared, briefly ringed so the eye lands on it after the scroll. */
+@keyframes attention {
+  from {
+    box-shadow: 0 0 0 0 var(--color-brand-ring);
+  }
+  40% {
+    box-shadow: 0 0 0 5px var(--color-brand-ring);
+  }
+  to {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.animate-attention {
+  animation: attention 1.1s ease-out 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-attention {
+    animation: none;
+  }
+}
+
 @keyframes ping-soft {
   0% {
     transform: scale(1);
