@@ -13,7 +13,7 @@
 
 import { Suspense } from "react";
 import { AuthDialog } from "@/components/landing/auth/AuthDialog";
-import { OpenSignUpFromQuery } from "@/components/landing/auth/OpenSignUpFromQuery";
+import { OpenAuthFromQuery } from "@/components/landing/auth/OpenAuthFromQuery";
 import { AuthDialogProvider } from "@/components/landing/context/AuthDialogProvider";
 import { FaqSection } from "@/components/landing/faq/FaqSection";
 import { FeaturesSection } from "@/components/landing/features/FeaturesSection";
@@ -52,7 +52,7 @@ export default function LandingPage() {
             <AuthDialog />
             {/* `useSearchParams` needs a Suspense boundary above it for the page to prerender. */}
             <Suspense fallback={null}>
-              <OpenSignUpFromQuery />
+              <OpenAuthFromQuery />
             </Suspense>
           </main>
         </AuthDialogProvider>

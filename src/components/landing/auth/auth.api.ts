@@ -1,14 +1,14 @@
 /**
- * Registering, signing in, and checking an email before either.
+ * Registering, and checking an email before it.
  *
- * <p>The only calls that need no access token - they are how one is obtained.
+ * <p>The only calls that need no access token. Signing in is not among them any more: that runs
+ * on the gateway, which holds the tokens itself - see `gateway.api.ts`.
  */
 
 import { request } from "@/lib/api";
 import type {
   EmailAvailability,
   EmailValidationRequest,
-  LoginRequest,
   RegisterRequest,
   SessionView,
 } from "./auth.types";
@@ -16,9 +16,6 @@ import type {
 export const authApi = {
   /** Creates the login in Keycloak and signs it in. The profile is a separate call after it. */
   register: (body: RegisterRequest) => request<SessionView>("POST", "/v1/auth/register", { body }),
-
-  /** Exchanges an email and password for a session. Needs no token - this is how you get one. */
-  login: (body: LoginRequest) => request<SessionView>("POST", "/v1/auth/login", { body }),
 
   /**
    * Whether an email can still be registered.

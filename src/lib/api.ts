@@ -2,8 +2,11 @@
  * How this app talks to the backend: the client, the token, and the one `request` every
  * endpoint goes through. The endpoints themselves live with their feature, in `*.api.ts`.
  *
- * <p>Calls go straight to the Spring backend. The backend decides who is allowed to call it,
- * in its own `CorsConfig`, rather than this app standing in front of it.
+ * <p>Two ways out, picked per request by `authMode`. A freshly registered browser holds an
+ * access token and goes straight to the Spring backend. A signed-in browser holds only a cookie
+ * it cannot read and goes through the gateway, which attaches the token on the way past. Everything below this
+ * line - the envelope, the errors, the query rules - is identical either way, which is the point:
+ * no feature's `*.api.ts` knows which door it came through.
  *
  * <p>Two things every caller gets for free. The `ApiResponse` envelope is unwrapped, so a
  * component receives an `ApplicationView[]` rather than a wrapper it has to reach through. And a
@@ -18,6 +21,7 @@
 
 import axios from "axios";
 import type { ApiResponse } from "@/lib/types";
+import { GATEWAY_BASE_URL, isSessionMode, writeAuthMode } from "@/lib/authMode";
 import { ERROR_MESSAGES } from "./errorMessages";
 
 /**
@@ -125,6 +129,16 @@ const client = axios.create({
  * `sub` claim, so this app never sends - or stores - an account id of its own.
  */
 client.interceptors.request.use((config) => {
+  if (isSessionMode()) {
+    // The gateway, not the backend: it is the only thing that can turn the session cookie into
+    // a bearer token. `withCredentials` is what actually sends the cookie cross-origin - axios
+    // omits it by default, and without it the gateway sees an anonymous request and the app
+    // looks signed out while holding a perfectly good session.
+    config.baseURL = `${GATEWAY_BASE_URL}/api`;
+    config.withCredentials = true;
+    return config;
+  }
+
   const token = readToken();
   if (token) config.headers.set("Authorization", `Bearer ${token}`);
   return config;
@@ -171,6 +185,9 @@ export async function request<T>(
  */
 function endSession(): void {
   writeToken(null);
+  // Back to the path that needs no cookie. Leaving the mode on `session` would send the next
+  // attempt's calls to the gateway with no session behind them, failing the same way again.
+  writeAuthMode("token");
   if (typeof window !== "undefined" && window.location.pathname !== "/") {
     window.location.href = "/?signin=1";
   }

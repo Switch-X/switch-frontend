@@ -1,46 +1,39 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/session";
+import { useState } from "react";
+
+import { gatewayApi } from "@/components/landing/auth/gateway.api";
+import { writeAuthMode } from "@/lib/authMode";
 import { Button } from "@/components/ui/button/Button";
-import { ErrorNote } from "@/components/ui/feedback/ErrorNote";
-import { Field } from "@/components/ui/form/Field";
-import { Input } from "@/components/ui/form/Input";
-import { signInErrorMessage } from "@/components/landing/auth/sign-in/signIn.utils";
 
 /**
- * Sign in with the email and password the account was registered with.
+ * Sign in.
  *
- * <p>Both halves of a failed sign-in get the same message, because that is all the backend will
- * say: telling somebody whether the email exists is how an account list gets enumerated one
- * guess at a time.
+ * <p>There is no password field here, and that is the point: this app never sees the password.
+ * The browser goes to Keycloak, signs in there, and comes back to the gateway, which keeps the
+ * tokens and hands this browser nothing but a cookie it cannot read. A script that ends up on
+ * this page has nothing to steal.
+ *
+ * <p>A full navigation rather than a fetch. Keycloak's sign-in page has to be reached as a
+ * top-level navigation or it cannot do its job - no password field, no MFA step, and no chance to
+ * notice the reader already has a session and wave them straight through. A fetch would return
+ * the HTML and nothing would happen.
+ *
+ * <p>The mode is written *before* leaving, because after the redirect this app is loaded fresh
+ * and has no memory of what was clicked. It is the only thing that survives the trip on this
+ * side; everything that matters survives on the gateway's side, in Redis.
+ *
+ * <p>No loading state that ever clears. The page is on its way out - a spinner that resolves
+ * would be a lie, and leaving the button pressable invites a second flow that abandons the
+ * first one's state in Redis for five minutes.
  */
 export function SignInPanel({ onSwitch }: { onSwitch: () => void }) {
-  const { signIn } = useSession();
-  const router = useRouter();
+  const [leaving, setLeaving] = useState(false);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (!email.trim() || !password) {
-      setError("Enter your email and password to sign in.");
-      return;
-    }
-
-    setBusy(true);
-    setError(null);
-    try {
-      await signIn(email, password);
-      router.push("/dashboard");
-    } catch (failure) {
-      setError(signInErrorMessage(failure, "That email and password do not match an account."));
-      setBusy(false);
-    }
+  function start() {
+    setLeaving(true);
+    writeAuthMode("session");
+    window.location.href = gatewayApi.loginUrl("/dashboard");
   }
 
   return (
@@ -48,39 +41,17 @@ export function SignInPanel({ onSwitch }: { onSwitch: () => void }) {
       <div>
         <h2 className="text-lg font-semibold text-ink">Pick up where you left off</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          Sign in with the email and password you registered with.
+          You will sign in on a page of your own, then come straight back here.
         </p>
       </div>
 
-      <form className="space-y-4" onSubmit={submit}>
-        <Field label="Email" htmlFor="signin-email" required>
-          <Input
-            id="signin-email"
-            type="email"
-            value={email}
-            placeholder="ada@example.com"
-            autoComplete="email"
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </Field>
+      <Button className="w-full" loading={leaving} onClick={start}>
+        Sign in
+      </Button>
 
-        <Field label="Password" htmlFor="signin-password" required>
-          <Input
-            id="signin-password"
-            type="password"
-            value={password}
-            placeholder="••••••••••"
-            autoComplete="current-password"
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </Field>
-
-        {error && <ErrorNote>{error}</ErrorNote>}
-
-        <Button type="submit" className="w-full" loading={busy}>
-          Sign in
-        </Button>
-      </form>
+      <p className="text-center text-xs text-ink-subtle">
+        Your password is never typed into this app, and no sign-in token is kept in this browser.
+      </p>
 
       <p className="text-center text-sm text-ink-muted">
         No account yet?{" "}

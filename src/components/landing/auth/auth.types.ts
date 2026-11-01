@@ -1,5 +1,5 @@
 /**
- * Registering, signing in, and checking an email before either.
+ * Registering, and checking an email before it.
  *
  * Hand-written against the Java records in `com.switchapp.backend.api.dto` rather than generated,
  * so every field here should be traceable to one there. Where a Java field is a primitive
@@ -8,18 +8,15 @@
  * interview as a 0-minute one.
  */
 
-/** Signing in, or registering: both end with the same thing in hand. */
+/**
+ * What registering hands back.
+ *
+ * One field, because the backend sends one. The account id, refresh token and lifetime it used to
+ * return were all unused here and were dropped from the response - see `SessionView` on the Java
+ * side for why the refresh token in particular is no longer handed to a browser.
+ */
 export type SessionView = {
-  /** The identity provider's id. Read from the token by the backend; never sent by this app. */
-  accountId: string;
   accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-};
-
-export type LoginRequest = {
-  email: string;
-  password: string;
 };
 
 export type RegisterRequest = {
