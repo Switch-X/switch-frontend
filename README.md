@@ -1,195 +1,63 @@
-# SWITCH — frontend
+# Switch Frontend
 
-A Next.js app over the `switch-backend` REST API: applications, interviews and their rounds,
-assignments, screening calls, and the profile that ties them together.
+## At a Glance
 
-## Running it
+Every screen of the job search: the dashboard, applications, interviews and their rounds,
+assignments, screening calls, the workflow timeline, and the profile. Next.js App Router, React
+19, TypeScript, Tailwind - server components for the frame, client islands only where something
+actually changes.
 
-The backend has to be up first — this app talks to nothing else.
+```mermaid
+graph LR
+  FE[Switch Frontend]
+  FE --> BE[Switch Backend - bearer token, straight there]
+  FE --> GW[Switch Gateway - session cookie, nothing readable by a script]
+```
+
+- **Switch Backend** - the only source of data; there is no mock layer and nothing that can drift out of step with the real endpoints
+- **Switch Gateway** - used when the browser signed in through Keycloak; calls go through it and it attaches the token
+
+## Security
+
+- The sign-in panel has **no password field**. Signing in is a full navigation to Keycloak, and the app never sees the password
+- Two credentials, one rule each: a session cookie this page cannot read (through the gateway), or - on the registration path, where no cookie exists yet - an access token in `localStorage`, sent straight to the backend. One request interceptor picks the address and the credential
+- An error shown to a person never carries the backend's reason. The detail stays server-side; the screen says what to do next
+- A 401 ends the session everywhere at once: credential cleared, mode reset, back to sign-in
+
+## The Flows
+
+- **Sign in** - leave for Keycloak -> come back to the gateway -> land in the app, which asks `/auth/session` who it is
+- **Edit anything** - the form diffs itself and PATCHes only the fields that changed. Sending the whole record back would quietly overwrite anything that moved while the form was open
+- **Lists** - 10 a page, server-ordered and server-paged. Delete the last row on the last page and the page guard walks back one instead of showing an empty table
+- **Standalone interviews and assignments** - linked to an application, the company name comes from it; unlinked, the form asks for one, so nothing lands on the overview unnamed
+- **Sample data** - one click fills an empty account through the ordinary API. Every date is an offset from today, so the dashboard's "this week" block is never stale
+
+## The Screens
+
+- `dashboard` - what needs attention this week
+- `applications` - the list, the record, and its timeline
+- `interviews` - interviews and their rounds, questions, feedback, rejection reasons
+- `assignments`, `screening-calls` - take-homes and first calls
+- `workflows` - one application's story, read from the trail the backend writes
+- `profile` - the account, notification preferences, and deleting it
+
+## Purpose
+
+- The whole product surface. Everything a person sees of SWITCH is here
+- Owns no data. The only thing it keeps between visits is which door was used to sign in - the credential itself is either the gateway's or the browser's, never this app's to interpret
+
+**Talks to:**
+- Switch Backend, Switch Gateway - see the diagram above
+
+**Talked to by:**
+- A browser, and nothing else
+
+## Run it
 
 ```bash
-# 1. Backend, from source code/switch-backend
-mvn spring-boot:run          # http://localhost:8080/api
-
-# 2. Frontend, from here
 npm install
 npm run dev                  # http://localhost:3000
 ```
 
-Then open <http://localhost:3000>, click **Create account**, and pick an account id. That id is
-how you sign in from then on. A new account starts empty; **Load sample data** fills it in one
-click (see below).
-
-## Sample data
-
-The backend seeds nothing, so every account starts empty. The frontend carries a worked example
-in [`src/lib/sampleData.ts`](src/lib/sampleData.ts), loadable for any account from a
-**Load sample data** button.
-
-It creates 11 applications covering every one of the ten `ApplicationStatus` values, 4 interviews
-with 8 rounds between them (questions, feedback, and a rejection with its reasons), 4 assignments
-and 5 screening calls.
-
-The button appears in three places: on the dashboard when the account has nothing at all, in the
-empty state of each list page, and permanently under **Profile → Sample data** for once the
-account is no longer empty.
-
-Two things about it worth knowing:
-
-- **Every date is an offset from today**, not a literal. A fixture with dates baked in stops
-  demonstrating anything a few weeks later — "apply before 15 Sep" reads as a stale row, not an
-  urgent one. Offsets mean the dashboard's "needs you this week" block, the overdue colouring and
-  the upcoming/past interview split are always populated.
-- **It adds; it does not replace.** Run it twice and you get two of everything. The confirmation
-  dialog says so.
-
-It goes through the ordinary API — there is no mock layer and nothing that can drift out of step
-with the real endpoints. What it produces is indistinguishable from records typed in by hand.
-
-### Configuration
-
-One variable, in `.env.local`:
-
-```
-SWITCH_API_BASE_URL=http://localhost:8080/api
-```
-
-It is read on the server only. There is no `NEXT_PUBLIC_` copy, so pointing this at a deployed
-backend is a restart rather than a rebuild.
-
-## How it talks to the backend
-
-The browser calls this app's own `/api/switch/...`, and
-[`src/app/api/switch/[...path]/route.ts`](src/app/api/switch/[...path]/route.ts) forwards each
-call to the Spring Boot service.
-
-That indirection is doing real work. `switch-backend` configures no CORS at all, so a `fetch`
-straight from `localhost:3000` to `localhost:8080` is refused by the browser before the backend
-ever sees it. Proxying means the integration works against the backend exactly as it is — no
-`@CrossOrigin`, no `WebMvcConfigurer`, no changes on that side.
-
-### Signing in
-
-`HeaderCurrentUser` on the backend reads the caller from an `X-User-Id` request header and trusts
-it outright — there is no password to check and no token to verify. So the sign-in screen here
-asks for an account id and nothing else, rather than painting a fake password box over it.
-
-The id is held in `localStorage` and attached to every request by
-[`src/lib/api.ts`](src/lib/api.ts). When the resource server is wired up, the proxy attaches a
-bearer token instead and nothing else in the app moves.
-
-### When the backend fails
-
-The proxy splits every failure in two. The detail - the address it tried, the underlying error,
-whatever body a 5xx came back with - is written to the Next.js server's log, for whoever runs it.
-The browser gets one of three plain messages from
-[`src/lib/errorMessages.ts`](src/lib/errorMessages.ts) and nothing else, so an outage never shows
-anyone an internal address, a config variable or a stack trace. The backend's 4xx answers still
-pass through untouched: those are written for the reader, and they are how a form learns which
-field was rejected.
-
-## The landing page
-
-Rebuilt as a product page rather than a form with copy beside it. One folder per section, under
-`src/components/landing/`:
-
-| Folder | What it does |
-|---|---|
-| `hero/` | Aurora background, gradient headline, and the **Create account** button |
-| `hero/dashboard-preview/` | The real layout at miniature scale, cycling through three views on a timer |
-| `journey/` | Five stages of a job search — auto-advancing, clickable, pauses the moment you touch it |
-| `world-clocks/` | Three genuinely live clocks; a card goes dark when that city's quiet hours are running |
-| `stats/`, `features/` | Counted stats, and a bento grid with a cursor-following spotlight |
-| `faq/` | `<details>` accordion — keyboard operable, findable by in-page search, no JavaScript at all |
-| `auth/` | The sign-in / sign-up dialog, and the buttons around the page that open it |
-| `shared/`, `hooks/` | The section wrapper, reveal-on-scroll and the session gate; count-up, spotlight and timer hooks |
-
-Two rules it follows:
-
-- **Reveal-on-scroll always has a failsafe.** Hiding content and waiting for an
-  `IntersectionObserver` means any case where that callback does not arrive leaves the section
-  invisible *permanently*. Every reveal also fires on a 1.6s timer, so the worst case is a section
-  that appears without animating rather than one that never appears. The hidden state is also
-  scoped to `[data-reveal-ready]`, which is only set once JS runs.
-- **Motion is for this page only.** The app itself does not animate — an interface you use daily
-  should hold still. Everything here is `transform` and `opacity` so the compositor handles it,
-  and all of it collapses under `prefers-reduced-motion`.
-
-Fonts are **Bricolage Grotesque** (display), **Plus Jakarta Sans** (UI) and **JetBrains Mono**
-(code), loaded through `next/font` so they are self-hosted, preloaded, and metric-matched against
-a local fallback — no flash, no layout shift, no second origin on the critical path.
-
-## Layout
-
-```
-src/
-  app/                          routes only - each page.tsx lists its page's sections, in order
-    page.tsx                    landing + sign in / sign up
-    (app)/                      everything behind a session
-      layout.tsx                the shell: session gate, sidebar, mobile header
-      dashboard/                overview: what needs you this week
-      applications/             paged table, filters, CRUD
-      interviews/               cards with per-round CRUD
-      assignments/              table, filters, CRUD
-      screening-calls/          table, filters, CRUD
-      profile/                  profile, history, reminders, delete account
-    api/switch/[...path]/       the proxy
-  components/
-    <page>/                     one folder per page: landing, app-shell, dashboard, applications,
-                                interviews, assignments, screening-calls, profile
-      <section>/                one folder per section of that page, holding its components
-      context/                  the page's shared client state - a provider and its hook
-      constants/                static data: defaults, thresholds, table columns, copy lists
-      utils/                    pure functions: sorting, urgency colours, form <-> request body
-      types/                    the page's own types: form state, filters
-      hooks/                    hooks only that page uses
-    shared/                     used by more than one page: filters, tables, sample data, ...
-    ui/                         primitives - Button, Card, Badge, Modal, form controls, icons
-  lib/
-    types.ts                    hand-written against the Java DTOs
-    api.ts                      typed client, envelope unwrapping, ApiError
-    errorMessages.ts            the only words a failure may show a user
-    enums.ts                    backend enums to human wording and colour
-    session.tsx                 who is signed in
-    format.ts                   dates, durations, tenure, counts
-    timezone.ts                 the browser's zone, and the zones a picker offers
-    hooks.ts                    list loading with a staleness guard, dialogs, form fields
-```
-
-### Server and client components
-
-Every `page.tsx` and `layout.tsx` is a server component, and so is anything that only renders
-markup. `"use client"` goes on a file only when it holds state, runs an effect, reads context or
-uses a browser-only hook - nowhere else. Where a static block needs one interactive piece, that
-piece is its own small client component and the block around it stays on the server. Where a
-client wrapper has static content inside it - a reveal animation, the sidebar's sliding frame, the
-hero's preview window - the content is passed in as `children` or props, so it still renders on the
-server.
-
-The data pages cannot move their data to the server: the session that says whose data it is lives
-in the browser. So each keeps one client provider in its `context/` folder, and its islands read
-from that while the headings and cards around them render on the server.
-
-## Things worth knowing before changing it
-
-**Plain dates never become a `Date`.** `appliedOn`, `applyBefore`, `interviewDate` and friends are
-`LocalDate` on the wire — calendar facts with no zone. `new Date("2026-09-12")` parses that as
-midnight UTC and renders it in the viewer's zone, which shows the 11th to everyone west of
-Greenwich. [`format.ts`](src/lib/format.ts) splits the string instead. `createdAt` and
-`lastActivity` are `Instant`s and *are* rendered in the reader's local zone, which is correct for
-those.
-
-**Interview order comes from the backend.** `InterviewServiceImpl` sorts upcoming-first against
-the *account holder's* timezone, not the server's. Re-sorting in the browser would substitute this
-machine's zone and get it wrong for anyone else.
-
-**Rounds are not edited through the interview form.** The backend's `UpdateInterviewRequest`
-carries no rounds and its update leaves the collection untouched; rounds have their own endpoints.
-A combined form would silently discard round edits on save.
-
-**The whole employment history is sent on every profile save.** The backend replaces the list and
-relies on orphan removal, so dropping an entry from the array is how it gets deleted.
-
-**Filters are omitted, not blanked.** Every list filter is `@RequestParam(required = false)`.
-Sending `?source=` hands Spring an empty string to coerce into an enum and earns a 400, so
-[`api.ts`](src/lib/api.ts) drops empty values instead of serialising them.
+The backend has to be up first. For the cookie sign-in the gateway and Keycloak are needed too;
+without them, create an account and the app works on a bearer token.
