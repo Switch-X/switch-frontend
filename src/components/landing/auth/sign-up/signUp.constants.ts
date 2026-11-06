@@ -1,4 +1,4 @@
-/** The sign-up wizard: where it starts, and the three screens it moves through. */
+/** The profile wizard: where it starts, and the two screens it moves through. */
 
 import {
   DEFAULT_DIGEST_MODE,
@@ -8,11 +8,9 @@ import {
 } from "@/components/shared/constants/profileDefaults";
 import type { SignUpFormState } from "./signUp.types";
 
-/** A blank sign-up form. The timezone is swapped for the browser's own as soon as it mounts. */
+/** A blank form. The timezone is swapped for the browser's own as soon as it mounts. */
 export const INITIAL_SIGN_UP_FORM: SignUpFormState = {
   fullName: "",
-  email: "",
-  password: "",
   yearsOfExperience: "0",
   workingProfile: DEFAULT_WORKING_PROFILE,
   skills: "",
@@ -25,16 +23,14 @@ export const INITIAL_SIGN_UP_FORM: SignUpFormState = {
 };
 
 /**
- * The sign-up wizard, one screen at a time.
+ * Two steps, because there are only two questions left.
  *
- * <p>Three steps rather than one long form, because the single form asked for fourteen things
- * at once and most people meet it before they have decided they want the product. Each step
- * here is a question somebody can answer without stopping to think: who you are, what you do,
- * when it is reasonable to contact you.
+ * <p>The name, the email and the password were taken on Keycloak's own page before this is ever
+ * reached, so nothing here asks for them again - and this app never sees the password at all.
  *
- * <p>`requires` names the fields that must be filled before **Next** is allowed. Only the first
- * step has any - the rest all have sensible defaults, and nobody should be blocked from creating
- * an account because they have not listed their skills.
+ * <p>`requires` names the fields that must be filled before **Next** is allowed. Neither step
+ * has any: every field below has a sensible default, and nobody should be held at the door
+ * because they have not listed their skills.
  */
 type SignUpStep = {
   /** Shown in the progress strip. */
@@ -46,14 +42,9 @@ type SignUpStep = {
 
 export const SIGN_UP_STEPS: SignUpStep[] = [
   {
-    title: "Account info",
-    blurb: "Just enough to know who you are.",
-    requires: ["fullName", "email", "password"],
-  },
-  {
     title: "Share your experience journey",
     blurb: "Where you are in your career, and what you are aiming at next.",
-    requires: [],
+    requires: ["fullName"],
   },
   {
     title: "Reminders",

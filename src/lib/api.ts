@@ -2,11 +2,10 @@
  * How this app talks to the backend: the client, the token, and the one `request` every
  * endpoint goes through. The endpoints themselves live with their feature, in `*.api.ts`.
  *
- * <p>Two ways out, picked per request by `authMode`. A freshly registered browser holds an
- * access token and goes straight to the Spring backend. A signed-in browser holds only a cookie
- * it cannot read and goes through the gateway, which attaches the token on the way past. Everything below this
- * line - the envelope, the errors, the query rules - is identical either way, which is the point:
- * no feature's `*.api.ts` knows which door it came through.
+ * <p>One way out: the gateway. The browser holds a cookie it cannot read, and the gateway
+ * turns that into a bearer token on the way past. Nothing is kept on this side - no token, no
+ * account id, no note of how anybody signed in - so there is nothing here for a script on the
+ * page to steal and nothing to go stale between tabs.
  *
  * <p>Two things every caller gets for free. The `ApiResponse` envelope is unwrapped, so a
  * component receives an `ApplicationView[]` rather than a wrapper it has to reach through. And a
@@ -21,21 +20,26 @@
 
 import axios from "axios";
 import type { ApiResponse } from "@/lib/types";
-import { GATEWAY_BASE_URL, isSessionMode, writeAuthMode } from "@/lib/authMode";
 import { ERROR_MESSAGES } from "./errorMessages";
 
 /**
- * Where the backend is, including its context path.
+ * Where the gateway is.
  *
- * `NEXT_PUBLIC_` because this is read in the browser, so the value is compiled into the bundle
- * and anybody can read it. That is the trade for calling the backend directly: it is the
- * backend's `switch.allowed-origins` that decides who may call it, not this app being the only
- * thing that knows the address.
+ * `NEXT_PUBLIC_` because the browser is what calls it, so the value is compiled into the bundle
+ * and anybody can read it. That is fine: the address was never the secret. What the gateway
+ * keeps private is the client secret and the tokens, and neither is here.
  */
-const BASE_URL = process.env.NEXT_PUBLIC_SWITCH_API_BASE_URL ?? "http://localhost:8000/api";
+export const GATEWAY_BASE_URL =
+  process.env.NEXT_PUBLIC_SWITCH_GATEWAY_BASE_URL ?? "http://localhost:8090";
 
-/** Where the browser keeps the access token between page loads. */
-const TOKEN_KEY = "switch.session.accessToken";
+/**
+ * Every call goes to the gateway, which passes it to the backend under the same path.
+ *
+ * <p>Including the ones made before anybody is signed in. Registering arrives at the gateway
+ * with no cookie, is passed straight through, and reaches an endpoint the backend leaves open -
+ * so there is no second address to configure and no second origin to allow.
+ */
+const BASE_URL = `${GATEWAY_BASE_URL}/api`;
 
 /**
  * A failed call, with enough of the backend's answer to say something useful.
@@ -56,37 +60,20 @@ export class ApiError extends Error {
     this.fieldErrors = fieldErrors;
   }
 
-  /** True when the account behind the current session no longer has a profile. */
+  /**
+   * True when the account behind the current session has no profile.
+   *
+   * <p>The status alone, deliberately. This is only ever asked of `GET /v1/users/me`, and the
+   * one thing that endpoint cannot find is the profile - so a 404 from it means exactly this.
+   *
+   * <p>It used to also require the words "no profile" in the message, which read as careful and
+   * was the opposite. A 404 that does not carry the backend's problem body - a path that missed,
+   * anything between here and the backend answering for itself - has no `detail` to match, so
+   * the check failed, the caller treated it as an unknown error, and a reader holding a perfectly
+   * good session was told they were signed out.
+   */
   get isMissingProfile(): boolean {
-    return this.status === 404 && this.message.toLowerCase().includes("no profile");
-  }
-}
-
-/**
- * The access token, or null when nobody is signed in.
- *
- * <p>Only the access token is kept. The refresh token comes back from the backend too and is
- * deliberately dropped: nothing refreshes yet, and a long-lived credential sitting in storage
- * that no code reads is a liability rather than a feature. When refreshing is built, this is
- * the file that starts keeping it.
- */
-export function readToken(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(TOKEN_KEY);
-  } catch {
-    // Private browsing and blocked site data both throw rather than returning null.
-    return null;
-  }
-}
-
-export function writeToken(accessToken: string | null): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (accessToken) window.localStorage.setItem(TOKEN_KEY, accessToken);
-    else window.localStorage.removeItem(TOKEN_KEY);
-  } catch {
-    // Nothing to do: the session simply will not survive a reload.
+    return this.status === 404;
   }
 }
 
@@ -120,28 +107,10 @@ const client = axios.create({
   headers: { Accept: "application/json" },
   validateStatus: () => true,
   paramsSerializer: serializeParams,
-});
-
-/**
- * The access token, on every request.
- *
- * <p>The backend verifies it against Keycloak's signing keys and reads the account from its
- * `sub` claim, so this app never sends - or stores - an account id of its own.
- */
-client.interceptors.request.use((config) => {
-  if (isSessionMode()) {
-    // The gateway, not the backend: it is the only thing that can turn the session cookie into
-    // a bearer token. `withCredentials` is what actually sends the cookie cross-origin - axios
-    // omits it by default, and without it the gateway sees an anonymous request and the app
-    // looks signed out while holding a perfectly good session.
-    config.baseURL = `${GATEWAY_BASE_URL}/api`;
-    config.withCredentials = true;
-    return config;
-  }
-
-  const token = readToken();
-  if (token) config.headers.set("Authorization", `Bearer ${token}`);
-  return config;
+  // What actually sends the session cookie cross-origin. Axios omits it by default, and
+  // without it the gateway sees an anonymous request - so the app looks signed out while
+  // holding a perfectly good session.
+  withCredentials: true,
 });
 
 /**
@@ -177,17 +146,16 @@ export async function request<T>(
 }
 
 /**
- * Forget the token and send the reader back to the landing page to sign in again.
+ * Send the reader back to the landing page to sign in again.
+ *
+ * <p>Nothing to forget first: the cookie is the gateway's and this code cannot touch it, and
+ * the gateway drops it the moment the session behind it is gone.
  *
  * <p>A full navigation rather than a router push: this can fire from anywhere, including code
  * that is not inside a React tree, and it is the end of the session either way - there is no
  * state worth preserving across it.
  */
 function endSession(): void {
-  writeToken(null);
-  // Back to the path that needs no cookie. Leaving the mode on `session` would send the next
-  // attempt's calls to the gateway with no session behind them, failing the same way again.
-  writeAuthMode("token");
   if (typeof window !== "undefined" && window.location.pathname !== "/") {
     window.location.href = "/?signin=1";
   }

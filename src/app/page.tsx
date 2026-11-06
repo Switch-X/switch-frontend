@@ -11,10 +11,6 @@
  * the header, the hero, the closing call to action and the footer.
  */
 
-import { Suspense } from "react";
-import { AuthDialog } from "@/components/landing/auth/AuthDialog";
-import { OpenAuthFromQuery } from "@/components/landing/auth/OpenAuthFromQuery";
-import { AuthDialogProvider } from "@/components/landing/context/AuthDialogProvider";
 import { FaqSection } from "@/components/landing/faq/FaqSection";
 import { FeaturesSection } from "@/components/landing/features/FeaturesSection";
 import { FinalCta } from "@/components/landing/final-cta/FinalCta";
@@ -35,7 +31,6 @@ export default function LandingPage() {
       <RevealReady />
 
       <LandingGate>
-        <AuthDialogProvider>
           <main>
             <LandingHeader />
             <Hero />
@@ -49,13 +44,7 @@ export default function LandingPage() {
             <FinalCta />
             <Footer />
 
-            <AuthDialog />
-            {/* `useSearchParams` needs a Suspense boundary above it for the page to prerender. */}
-            <Suspense fallback={null}>
-              <OpenAuthFromQuery />
-            </Suspense>
           </main>
-        </AuthDialogProvider>
       </LandingGate>
     </>
   );

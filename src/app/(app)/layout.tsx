@@ -3,7 +3,7 @@
  *
  * <p>A server component. The frame itself - the two columns, the brand, the page container - is
  * static markup. The parts that need the browser are islands inside it, each in
- * `components/app-shell/`: the session gate (the session lives in localStorage), the drawer
+ * `components/app-shell/`: the session gate (the session is a cookie, so it asks), the drawer
  * (open or closed), the nav (which row is current) and the account strip (who is signed in).
  *
  * <p>The sidebar is fixed and only the main column scrolls, so the navigation does not slide away

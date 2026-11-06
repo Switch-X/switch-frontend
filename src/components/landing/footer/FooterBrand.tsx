@@ -1,6 +1,6 @@
 import { Icon } from "@/components/ui/icons";
 import { Logo } from "@/components/ui/brand/Logo";
-import { AuthDialogTrigger } from "@/components/landing/auth/AuthDialogTrigger";
+import { StartAuthButton } from "@/components/landing/auth/StartAuthButton";
 
 /** What this is, in two sentences, and a second chance to start. */
 export function FooterBrand() {
@@ -14,13 +14,13 @@ export function FooterBrand() {
         tells you what needs you today.
       </p>
 
-      <AuthDialogTrigger
+      <StartAuthButton
         mode="signup"
         className="group mt-5 inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-surface transition hover:-translate-y-0.5 hover:shadow-md"
       >
         Create your account
         <Icon.ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
-      </AuthDialogTrigger>
+      </StartAuthButton>
     </div>
   );
 }

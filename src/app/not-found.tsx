@@ -13,7 +13,7 @@ import { Icon } from "@/components/ui/icons";
  * anywhere - and it says so without a paragraph of apology.
  *
  * <p>Both ways out are offered because this page cannot know which one is wanted. Whether
- * somebody is signed in lives in `localStorage`, which is not readable while this renders, and
+ * somebody is signed in is a cookie this code cannot read, answered only by asking, and
  * guessing wrong means sending a signed-out visitor to a dashboard that bounces them back.
  */
 export default function NotFound() {

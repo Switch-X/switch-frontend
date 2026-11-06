@@ -11,13 +11,15 @@
  * to end up debugging a session that was created correctly and then never sent.
  */
 
-import { GATEWAY_BASE_URL } from "@/lib/authMode";
+import { GATEWAY_BASE_URL } from "@/lib/api";
 
 /** What the gateway will say about the current cookie. No token is ever in here. */
 export type GatewaySession = {
   authenticated: boolean;
   email?: string;
   subject?: string;
+  /** From the id token, so the profile step does not ask for a name Keycloak already took. */
+  name?: string;
 };
 
 export const gatewayApi = {
@@ -31,6 +33,10 @@ export const gatewayApi = {
    */
   loginUrl: (redirectTo = "/dashboard") =>
     `${GATEWAY_BASE_URL}/auth/login?redirect=${encodeURIComponent(redirectTo)}`,
+
+  /** Keycloak's own sign-up page. Same flow as signing in; it just opens on the register form. */
+  registerUrl: (redirectTo: string) =>
+    `${GATEWAY_BASE_URL}/auth/register?redirect=${encodeURIComponent(redirectTo)}`,
 
   /**
    * Whether this browser has a session, and whose.

@@ -2,11 +2,13 @@
 
 import type { DigestMode, WorkingProfile } from "@/components/profile/user.types";
 
-/** The sign-up form, as typed. Lists are comma separated text until the form is sent. */
+/**
+ * The profile form, as typed. Lists are comma separated text until the form is sent.
+ *
+ * <p>No name, email or password: Keycloak took those, and they arrive with the session.
+ */
 export type SignUpFormState = {
   fullName: string;
-  email: string;
-  password: string;
   yearsOfExperience: string;
   workingProfile: WorkingProfile;
   skills: string;

@@ -12,7 +12,7 @@ import {
 import type { StepProps } from "@/components/landing/auth/sign-up/signUp.types";
 
 /**
- * Step three: when it is reasonable to reach you.
+ * Step two: when it is reasonable to reach you.
  *
  * <p>The timezone is pre-filled from the browser rather than defaulted. The backend falls back
  * to `switch.default-timezone` (UTC out of the box) for a profile that arrives without one, and
@@ -23,12 +23,13 @@ export function RemindersStep({ form, set, fieldErrors }: StepProps) {
   const detected = detectTimeZone() ?? DEFAULT_TIMEZONE;
 
   return (
-    <div className="space-y-5">
+    <div className="grid gap-6 sm:grid-cols-2">
       <Field
         label="Your city's timezone"
         htmlFor="signup-tz"
         error={fieldErrors.timezone}
         hint="Quiet hours below are read against this, so they hold when the clocks change."
+        className="sm:col-span-2"
       >
         <Select
           id="signup-tz"
@@ -44,24 +45,23 @@ export function RemindersStep({ form, set, fieldErrors }: StepProps) {
         </Select>
       </Field>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Quiet from" htmlFor="signup-quiet-start">
-          <Input
-            id="signup-quiet-start"
-            type="time"
-            value={form.quietStart}
-            onChange={(event) => set("quietStart", event.target.value)}
-          />
-        </Field>
-        <Field label="Quiet until" htmlFor="signup-quiet-end">
-          <Input
-            id="signup-quiet-end"
-            type="time"
-            value={form.quietEnd}
-            onChange={(event) => set("quietEnd", event.target.value)}
-          />
-        </Field>
-      </div>
+      <Field label="Quiet from" htmlFor="signup-quiet-start">
+        <Input
+          id="signup-quiet-start"
+          type="time"
+          value={form.quietStart}
+          onChange={(event) => set("quietStart", event.target.value)}
+        />
+      </Field>
+
+      <Field label="Quiet until" htmlFor="signup-quiet-end">
+        <Input
+          id="signup-quiet-end"
+          type="time"
+          value={form.quietEnd}
+          onChange={(event) => set("quietEnd", event.target.value)}
+        />
+      </Field>
 
       <Field label="How often" htmlFor="signup-digest">
         <EnumSelect
@@ -73,7 +73,7 @@ export function RemindersStep({ form, set, fieldErrors }: StepProps) {
         />
       </Field>
 
-      <div className="rounded-xl border border-border bg-surface-muted p-4">
+      <div className="self-end rounded-xl border border-border bg-surface-muted p-4">
         <Checkbox
           id="signup-paused"
           label="Pause reminders for now"

@@ -1,6 +1,6 @@
 import { buttonClass } from "@/components/ui/button/Button";
 import { Icon } from "@/components/ui/icons";
-import { AuthDialogTrigger } from "@/components/landing/auth/AuthDialogTrigger";
+import { StartAuthButton } from "@/components/landing/auth/StartAuthButton";
 import { Reveal } from "@/components/landing/shared/Reveal";
 
 /** The last push before the footer. */
@@ -26,13 +26,13 @@ export function FinalCta() {
               take-homes, interview rounds — hangs off it as it happens.
             </p>
             <div className="mt-8 flex justify-center">
-              <AuthDialogTrigger
+              <StartAuthButton
                 mode="signup"
                 className={buttonClass({ variant: "inverse", className: "px-6 py-3 text-[15px]" })}
               >
                 Create account
                 <Icon.ArrowRight className="size-4" />
-              </AuthDialogTrigger>
+              </StartAuthButton>
             </div>
           </div>
         </div>
